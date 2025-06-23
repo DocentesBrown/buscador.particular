@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buscador de Docentes Particulares</title>
+  <title>Buscador de Docentes</title>
   <style>
     :root {
       --color-primario: #24496e;
@@ -108,7 +108,7 @@
   <p style="text-align: center; font-size: 0.9em; max-width: 600px; margin: 0 auto 20px auto;">
     Plataforma de búsqueda optimizada por 
     <a href="https://www.instagram.com/docentesbrown" target="_blank" style="color: var(--color-acento); font-weight: bold; text-decoration: none;">@docentesbrown</a>.<br>
-    El sitio no se hace responsable de la información que los docentes particulares ofrecen ni tiene relación con el servicio ofrecido por estos.
+    El sitio no se hace responsable de la información que los/as docentes particulares ofrecen, ni tiene relación contractual con el servicio ofrecido por estos. Simplemente es un servicio de busqueda organizada.
   </p>
   <div class="filters">
     <select id="zonaSelect" onchange="actualizarLocalidades()">
@@ -211,7 +211,7 @@
             ${modalidades}<br>
             Calificación: <span class="stars">${estrellas}</span><br>
             <a class="button whatsapp" href="${whatsapp}" target="_blank">Contactarse por WhatsApp</a>
-            <a class="button" href="https://forms.gle/on9vLtRGUnqp7fPE6" target="_blank" style="background-color: var(--color-acento);">Calificar Docente</a>
+            <a class="button" href="https://forms.gle/on9vLtRGUnqp7fPE6" target="_blank" style="background-color: var(--color-acento);">Calificar Docente</a><br><span style='font-size: 0.85em; font-style: italic;'>...Info cargada el: ${d[0]}</span>
           </div>
         `;
         contenedor.innerHTML += card;

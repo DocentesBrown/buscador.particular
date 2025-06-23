@@ -45,19 +45,13 @@
 
   <div class="filtros">
     <label>Zona:
-      <select id="filtroZona">
-        <option value="">Todas</option>
-      </select>
+      <select id="filtroZona"><option value="">Todas</option></select>
     </label>
     <label>Materia:
-      <select id="filtroMateria">
-        <option value="">Todas</option>
-      </select>
+      <select id="filtroMateria"><option value="">Todas</option></select>
     </label>
     <label>Localidad:
-      <select id="filtroLocalidad">
-        <option value="">Todas</option>
-      </select>
+      <select id="filtroLocalidad"><option value="">Todas</option></select>
     </label>
     <button onclick="buscarDocentes()">Buscar</button>
   </div>
@@ -70,17 +64,14 @@
 
     window.onload = async () => {
       const response = await fetch(url);
-      const csv = await response.text();
-      const rows = csv.split('\n').map(r => r.split(','));
-      const headers = rows[0];
-      datosDocentes = rows.slice(1).filter(row => row.length >= 13);
+      datosDocentes = await response.json();
       cargarFiltros(datosDocentes);
     };
 
     function cargarFiltros(datos) {
-      const zonas = [...new Set(datos.map(d => d[1]).filter(Boolean))].sort();
-      const materias = [...new Set(datos.map(d => d[10]).filter(Boolean))].sort();
-      const localidades = [...new Set(datos.map(d => d[11]).filter(Boolean))].sort();
+      const zonas = [...new Set(datos.map(d => d["Zona"]).filter(Boolean))].sort();
+      const materias = [...new Set(datos.map(d => d["Materia"]).filter(Boolean))].sort();
+      const localidades = [...new Set(datos.map(d => d["Localidad"]).filter(Boolean))].sort();
 
       zonas.forEach(z => filtroZona.add(new Option(z, z)));
       materias.forEach(m => filtroMateria.add(new Option(m, m)));
@@ -93,9 +84,9 @@
       const localidad = filtroLocalidad.value;
 
       const filtrados = datosDocentes.filter(doc => {
-        return (!zona || doc[1] === zona) &&
-               (!materia || doc[10] === materia) &&
-               (!localidad || doc[11] === localidad);
+        return (!zona || doc["Zona"] === zona) &&
+               (!materia || doc["Materia"] === materia) &&
+               (!localidad || doc["Localidad"] === localidad);
       });
 
       mostrarResultados(filtrados);
@@ -106,26 +97,26 @@
       contenedor.innerHTML = "";
 
       docentes.forEach(doc => {
-        const nombre = `${doc[3]} ${doc[2]}`;
-        const whatsapp = `https://wa.me/${doc[4].replace(/[^0-9]/g, '')}`;
-        const calificacion = parseFloat(doc[12]) || 0;
+        const nombre = `${doc["Nombre"]} ${doc["Apellido"]}`;
+        const whatsapp = `https://wa.me/${String(doc["Celular"]).replace(/[^0-9]/g, '')}`;
+        const calificacion = parseFloat(doc["Calificación"]) || 0;
         const estrellas = mostrarEstrellas(calificacion);
 
         const tarjeta = `
           <div class="tarjeta">
             <h3>${nombre}</h3>
-            <p><strong>Zona:</strong> ${doc[1]}</p>
-            <p><strong>Materia:</strong> ${doc[10]}</p>
-            <p><strong>Localidad:</strong> ${doc[11]}</p>
-            <p><strong>Precio:</strong> ${doc[8]}</p>
+            <p><strong>Zona:</strong> ${doc["Zona"]}</p>
+            <p><strong>Materia:</strong> ${doc["Materia"]}</p>
+            <p><strong>Localidad:</strong> ${doc["Localidad"]}</p>
+            <p><strong>Precio:</strong> ${doc["Precio por Hora"]}</p>
             <p><strong>Modalidad:</strong> 
-              ${doc[5] ? "Domicilio propio" : ""} 
-              ${doc[6] ? "Otro domicilio" : ""} 
-              ${doc[7] ? "Virtual" : ""} 
+              ${doc["Domicilio Propio"] ? "Domicilio propio" : ""} 
+              ${doc["Otro Domicilio"] ? "Otro domicilio" : ""} 
+              ${doc["Virtual"] ? "Virtual" : ""} 
             </p>
             <p>${estrellas}</p>
             <button onclick="window.open('${whatsapp}', '_blank')">Contactarse por WhatsApp</button>
-            <button onclick="calificarDocente('${doc[3]}', '${doc[2]}')">Calificar</button>
+            <button onclick="calificarDocente('${doc["Nombre"]}', '${doc["Apellido"]}')">Calificar</button>
           </div>
         `;
 
@@ -148,7 +139,7 @@
       const comentario = prompt("¿Querés dejar un comentario?");
       if (puntaje !== null && comentario !== null) {
         alert("Gracias por tu calificación. Pronto será registrada.");
-        // Aquí se puede llamar a un Google Apps Script para guardar la calificación
+        // Aquí se puede llamar a otro Apps Script para guardar la calificación
       }
     }
   </script>

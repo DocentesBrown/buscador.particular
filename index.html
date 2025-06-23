@@ -196,8 +196,8 @@
         const whatsapp = `https://wa.me/${celular}?text=Hola, encontré tu contacto en el buscador de Docentes Brown...`;
 
         let modalidades = '';
-        if (d[5].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-home"></i>En su domicilio</span>';
-        if (d[6].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-location-arrow"></i>Va a tu domicilio</span>';
+        if (d[5].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-home"></i>Clase en su domicilio</span>';
+        if (d[6].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-location-arrow"></i>Clase a domicilio</span>';
         if (d[7].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-laptop"></i>Clase virtual</span>';
 
         const card = `

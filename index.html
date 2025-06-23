@@ -5,43 +5,122 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Buscador de Docentes</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .filters { margin-bottom: 20px; }
+    :root {
+      --color-primario: #24496e;
+      --color-secundario: #ef9963;
+      --color-fondo: #f3efdc;
+      --color-acento: #4d3069;
+      --color-whatsapp: #2b647b;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: var(--color-fondo);
+      color: var(--color-primario);
+      margin: 0;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--color-acento);
+    }
+
+    .filters {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    select, button {
+      padding: 10px;
+      border: 1px solid var(--color-primario);
+      border-radius: 5px;
+      font-size: 1em;
+    }
+
+    button {
+      background-color: var(--color-secundario);
+      color: white;
+      cursor: pointer;
+    }
+
     .card {
-      border: 1px solid #ccc;
+      background-color: white;
+      border: 2px solid var(--color-primario);
       border-radius: 10px;
       padding: 15px;
-      margin-bottom: 15px;
-      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+      margin: 15px auto;
+      max-width: 600px;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
     }
+
     .stars {
       color: gold;
       font-size: 1.2em;
     }
+
     .button {
       display: inline-block;
       margin-top: 10px;
       padding: 10px 15px;
-      background-color: #28a745;
+      background-color: var(--color-primario);
       color: white;
       text-decoration: none;
       border-radius: 5px;
+      margin-right: 5px;
+    }
+
+    .button.whatsapp {
+      background-color: var(--color-whatsapp);
+    }
+
+    .modalidad-chip {
+      display: inline-flex;
+      align-items: center;
+      background-color: var(--color-primario);
+      color: white;
+      padding: 5px 10px;
+      margin: 3px 5px 3px 0;
+      border-radius: 20px;
+      font-size: 0.9em;
+    }
+
+    .modalidad-chip i {
+      margin-right: 5px;
+    }
+
+    @media screen and (max-width: 600px) {
+      .filters {
+        padding: 0 10px;
+      }
+      .card {
+        margin: 10px;
+      }
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
   <h1>Buscador de Docentes</h1>
+  <p style="text-align: center; font-size: 0.9em; max-width: 600px; margin: 0 auto 20px auto;">
+    Plataforma de búsqueda optimizada por 
+    <a href="https://www.instagram.com/docentesbrown" target="_blank" style="color: var(--color-acento); font-weight: bold; text-decoration: none;">@docentesbrown</a>.<br>
+    El sitio no se hace responsable de la información que los docentes particulares ofrecen ni tiene relación con el servicio ofrecido.
+  </p>
   <div class="filters">
-    <select id="zonaSelect">
+    <select id="zonaSelect" onchange="actualizarLocalidades()">
       <option value="">Seleccione Zona</option>
     </select>
-    <select id="localidadSelect">
+    <select id="localidadSelect" onchange="actualizarMaterias()">
       <option value="">Seleccione Localidad</option>
     </select>
     <select id="materiaSelect">
       <option value="">Seleccione Materia</option>
     </select>
-    <button onclick="buscarDocentes()">Buscar</button>
+    <button onclick="buscarDocentes()"><span style='color:black'>Buscar</span></button>
   </div>
   <div id="resultados"></div>
 
@@ -53,16 +132,33 @@
       .then(data => {
         const lines = data.split("\n").slice(1);
         docentes = lines.map(line => line.split(","));
-        cargarFiltros();
+        cargarZonas();
       });
 
-    function cargarFiltros() {
+    function cargarZonas() {
       const zonas = [...new Set(docentes.map(d => d[1]))].sort();
-      const localidades = [...new Set(docentes.map(d => d[11]))].sort();
-      const materias = [...new Set(docentes.map(d => d[10]))].sort();
-
       zonas.forEach(z => agregarOpcion("zonaSelect", z));
+    }
+
+    function actualizarLocalidades() {
+      const zona = document.getElementById("zonaSelect").value;
+      const localidadSelect = document.getElementById("localidadSelect");
+      localidadSelect.innerHTML = '<option value="">Seleccione Localidad</option>';
+      document.getElementById("materiaSelect").innerHTML = '<option value="">Seleccione Materia</option>';
+
+      if (!zona) return;
+      const localidades = [...new Set(docentes.filter(d => d[1] === zona).map(d => d[11]))].sort();
       localidades.forEach(l => agregarOpcion("localidadSelect", l));
+    }
+
+    function actualizarMaterias() {
+      const zona = document.getElementById("zonaSelect").value;
+      const localidad = document.getElementById("localidadSelect").value;
+      const materiaSelect = document.getElementById("materiaSelect");
+      materiaSelect.innerHTML = '<option value="">Seleccione Materia</option>';
+
+      if (!zona || !localidad) return;
+      const materias = [...new Set(docentes.filter(d => d[1] === zona && d[11] === localidad).map(d => d[10]))].sort();
       materias.forEach(m => agregarOpcion("materiaSelect", m));
     }
 
@@ -94,7 +190,16 @@
 
       lista.forEach(d => {
         const estrellas = obtenerEstrellas(parseFloat(d[12]));
-        const whatsapp = `https://wa.me/${d[4].replace(/[^\d]/g, '')}?text=Hola, encontré tu contacto en el buscador de Docentes Brown...`;
+        let celular = d[4].replace(/[^\d]/g, '');
+        if (celular.length < 10) celular = '54' + celular;
+        if (!celular.startsWith('54')) celular = '54' + celular;
+        const whatsapp = `https://wa.me/${celular}?text=Hola, encontré tu contacto en el buscador de Docentes Brown...`;
+
+        let modalidades = '';
+        if (d[5]) modalidades += '<span class="modalidad-chip"><i class="fas fa-home"></i>En su domicilio</span>';
+        if (d[6]) modalidades += '<span class="modalidad-chip"><i class="fas fa-location-arrow"></i>Va a tu domicilio</span>';
+        if (d[7]) modalidades += '<span class="modalidad-chip"><i class="fas fa-laptop"></i>Clase virtual</span>';
+
         const card = `
           <div class="card">
             <strong>${d[2]}, ${d[3]}</strong><br>
@@ -103,12 +208,10 @@
             Materia: ${d[10]}<br>
             Nivel: ${d[9]}<br>
             Precio por hora: ${d[8]}<br>
-            Contacto: ${d[4]}<br>
-            Domicilio: ${d[5] || d[6]}<br>
-            Virtual: ${d[7]}<br>
+            ${modalidades}<br>
             Calificación: <span class="stars">${estrellas}</span><br>
-            <a class="button" href="${whatsapp}" target="_blank">Contactarse por WhatsApp</a>
-            <a class="button" href="https://forms.gle/on9vLtRGUnqp7fPE6" target="_blank" style="background-color:#007bff">Calificar Docente</a>
+            <a class="button whatsapp" href="${whatsapp}" target="_blank">Contactarse por WhatsApp</a>
+            <a class="button" href="https://forms.gle/on9vLtRGUnqp7fPE6" target="_blank" style="background-color: var(--color-acento);">Calificar Docente</a>
           </div>
         `;
         contenedor.innerHTML += card;

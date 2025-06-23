@@ -2,166 +2,127 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Buscador de Docentes Particulares</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscador de Docentes</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f4f4f4;
-    }
-    h1 {
-      text-align: center;
-    }
-    .filtros {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    select, button {
-      padding: 8px;
-      font-size: 16px;
-    }
-    .tarjeta {
-      background-color: #fff;
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .filters { margin-bottom: 20px; }
+    .card {
+      border: 1px solid #ccc;
+      border-radius: 10px;
       padding: 15px;
       margin-bottom: 15px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
     }
-    .estrella {
+    .stars {
       color: gold;
-      font-size: 20px;
+      font-size: 1.2em;
     }
-    .resultados {
-      max-width: 800px;
-      margin: 0 auto;
+    .button {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 15px;
+      background-color: #28a745;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <h1>Buscador de Docentes Particulares</h1>
-
-  <div class="filtros">
-    <label>Zona:
-      <select id="filtroZona"><option value="">Todas</option></select>
-    </label>
-    <label>Materia:
-      <select id="filtroMateria"><option value="">Todas</option></select>
-    </label>
-    <label>Localidad:
-      <select id="filtroLocalidad"><option value="">Todas</option></select>
-    </label>
+  <h1>Buscador de Docentes</h1>
+  <div class="filters">
+    <select id="zonaSelect">
+      <option value="">Seleccione Zona</option>
+    </select>
+    <select id="localidadSelect">
+      <option value="">Seleccione Localidad</option>
+    </select>
+    <select id="materiaSelect">
+      <option value="">Seleccione Materia</option>
+    </select>
     <button onclick="buscarDocentes()">Buscar</button>
   </div>
-
-  <div class="resultados" id="resultados"></div>
+  <div id="resultados"></div>
 
   <script>
-    const url = "https://script.google.com/macros/s/AKfycbx_78vOy4GyHUxoCcteKWwTchhpa_1drRBXBMjTdJAm_iGoMiLHXp0na-xNuf6gxvRb/exec";
-    let datosDocentes = [];
+    let docentes = [];
 
-    window.onload = async () => {
-      try {
-        const response = await fetch(url);
-        let data = await response.json();
+    fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vT2QSxoKtG7qZquMBE724lvFai2Ms0SyVHx5fYNiV141zPQtq45nKTSBmkkhfTf5OXX8UMi6MzoS-Jd/pub?output=csv")
+      .then(response => response.text())
+      .then(data => {
+        const lines = data.split("\n").slice(1);
+        docentes = lines.map(line => line.split(","));
+        cargarFiltros();
+      });
 
-        // Limpiar espacios en los nombres de los campos
-        datosDocentes = data.map(doc => {
-          const limpio = {};
-          for (let clave in doc) {
-            limpio[clave.trim()] = doc[clave];
-          }
-          return limpio;
-        });
+    function cargarFiltros() {
+      const zonas = [...new Set(docentes.map(d => d[1]))].sort();
+      const localidades = [...new Set(docentes.map(d => d[11]))].sort();
+      const materias = [...new Set(docentes.map(d => d[10]))].sort();
 
-        cargarFiltros(datosDocentes);
-        mostrarResultados(datosDocentes); // Mostrar todo al inicio
-      } catch (error) {
-        alert("Ocurrió un error al cargar los datos. Verificá que el link funcione.");
-        console.error(error);
-      }
-    };
+      zonas.forEach(z => agregarOpcion("zonaSelect", z));
+      localidades.forEach(l => agregarOpcion("localidadSelect", l));
+      materias.forEach(m => agregarOpcion("materiaSelect", m));
+    }
 
-    function cargarFiltros(datos) {
-      const zonas = [...new Set(datos.map(d => d["Zona"]).filter(Boolean))].sort();
-      const materias = [...new Set(datos.map(d => d["Materia"]).filter(Boolean))].sort();
-      const localidades = [...new Set(datos.map(d => d["Localidad"]).filter(Boolean))].sort();
-
-      zonas.forEach(z => filtroZona.add(new Option(z, z)));
-      materias.forEach(m => filtroMateria.add(new Option(m, m)));
-      localidades.forEach(l => filtroLocalidad.add(new Option(l, l)));
+    function agregarOpcion(id, valor) {
+      const select = document.getElementById(id);
+      const option = document.createElement("option");
+      option.value = valor;
+      option.textContent = valor;
+      select.appendChild(option);
     }
 
     function buscarDocentes() {
-      const zona = filtroZona.value;
-      const materia = filtroMateria.value;
-      const localidad = filtroLocalidad.value;
+      const zona = document.getElementById("zonaSelect").value;
+      const localidad = document.getElementById("localidadSelect").value;
+      const materia = document.getElementById("materiaSelect").value;
 
-      const filtrados = datosDocentes.filter(doc => {
-        return (!zona || doc["Zona"] === zona) &&
-               (!materia || doc["Materia"] === materia) &&
-               (!localidad || doc["Localidad"] === localidad);
-      });
+      const resultados = docentes.filter(d =>
+        (!zona || d[1] === zona) &&
+        (!localidad || d[11] === localidad) &&
+        (!materia || d[10] === materia)
+      );
 
-      mostrarResultados(filtrados);
+      mostrarResultados(resultados);
     }
 
-    function mostrarResultados(docentes) {
+    function mostrarResultados(lista) {
       const contenedor = document.getElementById("resultados");
       contenedor.innerHTML = "";
 
-      if (docentes.length === 0) {
-        contenedor.innerHTML = "<p>No se encontraron docentes con esos filtros.</p>";
-        return;
-      }
-
-      docentes.forEach(doc => {
-        const nombre = `${doc["Nombre"]} ${doc["Apellido"]}`;
-        const whatsapp = `https://wa.me/${String(doc["Celular"]).replace(/[^0-9]/g, '')}`;
-        const calificacion = parseFloat(doc["Calificación"]) || 0;
-        const estrellas = mostrarEstrellas(calificacion);
-
-        const tarjeta = `
-          <div class="tarjeta">
-            <h3>${nombre}</h3>
-            <p><strong>Zona:</strong> ${doc["Zona"]}</p>
-            <p><strong>Materia:</strong> ${doc["Materia"]}</p>
-            <p><strong>Localidad:</strong> ${doc["Localidad"]}</p>
-            <p><strong>Precio:</strong> ${doc["Precio por Hora"]}</p>
-            <p><strong>Modalidad:</strong> 
-              ${doc["Domicilio Propio"] ? "Domicilio propio" : ""} 
-              ${doc["Otro Domicilio"] ? "Otro domicilio" : ""} 
-              ${doc["Virtual"] ? "Virtual" : ""} 
-            </p>
-            <p>${estrellas}</p>
-            <button onclick="window.open('${whatsapp}', '_blank')">Contactarse por WhatsApp</button>
-            <button onclick="calificarDocente('${doc["Nombre"]}', '${doc["Apellido"]}')">Calificar</button>
+      lista.forEach(d => {
+        const estrellas = obtenerEstrellas(parseFloat(d[12]));
+        const whatsapp = `https://wa.me/${d[4].replace(/[^\d]/g, '')}?text=Hola, encontré tu contacto en el buscador de Docentes Brown...`;
+        const card = `
+          <div class="card">
+            <strong>${d[2]}, ${d[3]}</strong><br>
+            Zona: ${d[1]}<br>
+            Localidad: ${d[11]}<br>
+            Materia: ${d[10]}<br>
+            Nivel: ${d[9]}<br>
+            Precio por hora: ${d[8]}<br>
+            Contacto: ${d[4]}<br>
+            Domicilio: ${d[5] || d[6]}<br>
+            Virtual: ${d[7]}<br>
+            Calificación: <span class="stars">${estrellas}</span><br>
+            <a class="button" href="${whatsapp}" target="_blank">Contactarse por WhatsApp</a>
+            <a class="button" href="https://forms.gle/on9vLtRGUnqp7fPE6" target="_blank" style="background-color:#007bff">Calificar Docente</a>
           </div>
         `;
-
-        contenedor.innerHTML += tarjeta;
+        contenedor.innerHTML += card;
       });
     }
 
-    function mostrarEstrellas(puntaje) {
-      let html = '';
-      for (let i = 1; i <= 5; i++) {
-        if (puntaje >= i) html += '★';
-        else if (puntaje >= i - 0.5) html += '☆';
-        else html += '✩';
-      }
-      return `<span class="estrella">${html}</span>`;
-    }
-
-    function calificarDocente(nombre, apellido) {
-      const puntaje = prompt(`¿Cuánto lo calificarías a ${nombre} ${apellido}? (0 a 5)`);
-      const comentario = prompt("¿Querés dejar un comentario?");
-      if (puntaje !== null && comentario !== null) {
-        alert("Gracias por tu calificación. Pronto será registrada.");
-        // Aquí podrías agregar código para guardar la calificación en una hoja de cálculo
-      }
+    function obtenerEstrellas(valor) {
+      const llenas = Math.floor(valor);
+      const media = (valor % 1) >= 0.5 ? 1 : 0;
+      let estrellas = "";
+      for (let i = 0; i < llenas; i++) estrellas += "★";
+      if (media) estrellas += "☆";
+      for (let i = llenas + media; i < 5; i++) estrellas += "✩";
+      return estrellas;
     }
   </script>
 </body>

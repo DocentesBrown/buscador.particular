@@ -63,9 +63,25 @@
     let datosDocentes = [];
 
     window.onload = async () => {
-      const response = await fetch(url);
-      datosDocentes = await response.json();
-      cargarFiltros(datosDocentes);
+      try {
+        const response = await fetch(url);
+        let data = await response.json();
+
+        // Limpiar espacios en los nombres de los campos
+        datosDocentes = data.map(doc => {
+          const limpio = {};
+          for (let clave in doc) {
+            limpio[clave.trim()] = doc[clave];
+          }
+          return limpio;
+        });
+
+        cargarFiltros(datosDocentes);
+        mostrarResultados(datosDocentes); // Mostrar todo al inicio
+      } catch (error) {
+        alert("Ocurrió un error al cargar los datos. Verificá que el link funcione.");
+        console.error(error);
+      }
     };
 
     function cargarFiltros(datos) {
@@ -95,6 +111,11 @@
     function mostrarResultados(docentes) {
       const contenedor = document.getElementById("resultados");
       contenedor.innerHTML = "";
+
+      if (docentes.length === 0) {
+        contenedor.innerHTML = "<p>No se encontraron docentes con esos filtros.</p>";
+        return;
+      }
 
       docentes.forEach(doc => {
         const nombre = `${doc["Nombre"]} ${doc["Apellido"]}`;
@@ -139,7 +160,7 @@
       const comentario = prompt("¿Querés dejar un comentario?");
       if (puntaje !== null && comentario !== null) {
         alert("Gracias por tu calificación. Pronto será registrada.");
-        // Aquí se puede llamar a otro Apps Script para guardar la calificación
+        // Aquí podrías agregar código para guardar la calificación en una hoja de cálculo
       }
     }
   </script>

@@ -108,17 +108,20 @@
   <p style="text-align: center; font-size: 0.9em; max-width: 600px; margin: 0 auto 20px auto;">
     Plataforma de búsqueda optimizada por 
     <a href="https://www.instagram.com/docentesbrown" target="_blank" style="color: var(--color-acento); font-weight: bold; text-decoration: none;">@docentesbrown</a>.<br>
-    El sitio no se hace responsable de la información que los/as docentes particulares ofrecen, ni tiene relación contractual con el servicio ofrecido por estos. Simplemente es un servicio de busqueda organizada.
+    El sitio no se hace responsable de la información que los docentes particulares ofrecen, ni tiene relación con el servicio ofrecido por estos. Simplemente es un servicio de búsqueda organizada.
   </p>
   <div class="filters">
-    <select id="zonaSelect" onchange="actualizarLocalidades()">
+    <select id="zonaSelect" onchange="actualizarFiltros()">
       <option value="">Seleccione Zona</option>
     </select>
-    <select id="localidadSelect" onchange="actualizarMaterias()">
+    <select id="localidadSelect" onchange="actualizarFiltros()">
       <option value="">Seleccione Localidad</option>
     </select>
-    <select id="materiaSelect">
+    <select id="materiaSelect" onchange="actualizarFiltros()">
       <option value="">Seleccione Materia</option>
+    </select>
+    <select id="nivelSelect" onchange="actualizarFiltros()">
+      <option value="">Seleccione Nivel</option>
     </select>
     <button onclick="buscarDocentes()"><span style='color:black'>Buscar</span></button>
   </div>
@@ -133,6 +136,7 @@
         const lines = data.split("\n").slice(1);
         docentes = lines.map(line => line.split(","));
         cargarZonas();
+        actualizarFiltros();
       });
 
     function cargarZonas() {
@@ -140,26 +144,34 @@
       zonas.forEach(z => agregarOpcion("zonaSelect", z));
     }
 
-    function actualizarLocalidades() {
-      const zona = document.getElementById("zonaSelect").value;
-      const localidadSelect = document.getElementById("localidadSelect");
-      localidadSelect.innerHTML = '<option value="">Seleccione Localidad</option>';
-      document.getElementById("materiaSelect").innerHTML = '<option value="">Seleccione Materia</option>';
-
-      if (!zona) return;
-      const localidades = [...new Set(docentes.filter(d => d[1] === zona).map(d => d[11]))].sort();
-      localidades.forEach(l => agregarOpcion("localidadSelect", l));
-    }
-
-    function actualizarMaterias() {
+    function actualizarFiltros() {
       const zona = document.getElementById("zonaSelect").value;
       const localidad = document.getElementById("localidadSelect").value;
-      const materiaSelect = document.getElementById("materiaSelect");
-      materiaSelect.innerHTML = '<option value="">Seleccione Materia</option>';
+      const materia = document.getElementById("materiaSelect").value;
+      const nivel = document.getElementById("nivelSelect").value;
 
-      if (!zona || !localidad) return;
-      const materias = [...new Set(docentes.filter(d => d[1] === zona && d[11] === localidad).map(d => d[10]))].sort();
-      materias.forEach(m => agregarOpcion("materiaSelect", m));
+      let filtrado = docentes;
+      if (zona) filtrado = filtrado.filter(d => d[1] === zona);
+      if (localidad) filtrado = filtrado.filter(d => d[11] === localidad);
+      if (materia) filtrado = filtrado.filter(d => d[10] === materia);
+      if (nivel) filtrado = filtrado.filter(d => d[9] === nivel);
+
+      actualizarOpciones("localidadSelect", [...new Set(filtrado.map(d => d[11]))]);
+      actualizarOpciones("materiaSelect", [...new Set(filtrado.map(d => d[10]))]);
+      actualizarOpciones("nivelSelect", [...new Set(filtrado.map(d => d[9]))]);
+    }
+
+    function actualizarOpciones(id, opciones) {
+      const select = document.getElementById(id);
+      const valorActual = select.value;
+      select.innerHTML = '<option value="">Seleccione ' + select.id.replace("Select", "") + '</option>';
+      opciones.sort().forEach(op => {
+        const option = document.createElement("option");
+        option.value = op;
+        option.textContent = op;
+        select.appendChild(option);
+      });
+      if (opciones.includes(valorActual)) select.value = valorActual;
     }
 
     function agregarOpcion(id, valor) {
@@ -174,11 +186,13 @@
       const zona = document.getElementById("zonaSelect").value;
       const localidad = document.getElementById("localidadSelect").value;
       const materia = document.getElementById("materiaSelect").value;
+      const nivel = document.getElementById("nivelSelect").value;
 
       const resultados = docentes.filter(d =>
         (!zona || d[1] === zona) &&
         (!localidad || d[11] === localidad) &&
-        (!materia || d[10] === materia)
+        (!materia || d[10] === materia) &&
+        (!nivel || d[9] === nivel)
       );
 
       mostrarResultados(resultados);
@@ -196,8 +210,8 @@
         const whatsapp = `https://wa.me/${celular}?text=Hola, encontré tu contacto en el buscador de Docentes Brown...`;
 
         let modalidades = '';
-        if (d[5].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-home"></i>Clase en su domicilio</span>';
-        if (d[6].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-location-arrow"></i>Clase a domicilio</span>';
+        if (d[5].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-home"></i>En su domicilio</span>';
+        if (d[6].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-location-arrow"></i>Va a tu domicilio</span>';
         if (d[7].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-laptop"></i>Clase virtual</span>';
 
         const card = `

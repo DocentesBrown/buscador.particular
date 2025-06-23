@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buscador de Docentes</title>
+  <title>Buscador de Docentes Particulares</title>
   <style>
     :root {
       --color-primario: #24496e;
@@ -196,9 +196,9 @@
         const whatsapp = `https://wa.me/${celular}?text=Hola, encontré tu contacto en el buscador de Docentes Brown...`;
 
         let modalidades = '';
-        if (d[5]) modalidades += '<span class="modalidad-chip"><i class="fas fa-home"></i>En su domicilio</span>';
-        if (d[6]) modalidades += '<span class="modalidad-chip"><i class="fas fa-location-arrow"></i>Va a tu domicilio</span>';
-        if (d[7]) modalidades += '<span class="modalidad-chip"><i class="fas fa-laptop"></i>Clase virtual</span>';
+        if (d[5].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-home"></i>En su domicilio</span>';
+        if (d[6].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-location-arrow"></i>Va a tu domicilio</span>';
+        if (d[7].trim().toUpperCase() === 'SI') modalidades += '<span class="modalidad-chip"><i class="fas fa-laptop"></i>Clase virtual</span>';
 
         const card = `
           <div class="card">

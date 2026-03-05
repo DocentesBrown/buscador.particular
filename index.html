@@ -90,7 +90,7 @@
 
     .filters {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 12px;
       align-items: end;
     }
@@ -361,11 +361,14 @@
     <section class="panel">
       <h2 class="panel-title">Buscar docentes</h2>
       <p class="panel-subtitle">
-        Esta versión está preparada para leer la hoja de respuestas del formulario como una base de datos mucho más estable,
-        usando encabezados en vez de posiciones fijas de columnas.
+        Esta versión lee la hoja de respuestas por encabezados y ahora filtra de forma independiente por Zona, Distrito, Localidad, Nivel, Materia y rango de precios.
       </p>
 
       <div class="filters">
+        <div class="field">
+          <label for="zonaSelect">Zona</label>
+          <select id="zonaSelect"></select>
+        </div>
         <div class="field">
           <label for="distritoSelect">Distrito</label>
           <select id="distritoSelect"></select>
@@ -375,14 +378,22 @@
           <select id="localidadSelect"></select>
         </div>
         <div class="field">
-          <label for="materiaSelect">Materia</label>
-          <select id="materiaSelect"></select>
-        </div>
-        <div class="field">
           <label for="nivelSelect">Nivel</label>
           <select id="nivelSelect"></select>
         </div>
         <div class="field">
+          <label for="materiaSelect">Materia</label>
+          <select id="materiaSelect"></select>
+        </div>
+        <div class="field">
+          <label for="precioMinInput">Precio mínimo</label>
+          <input id="precioMinInput" type="number" min="0" step="100" placeholder="Ej. 5000">
+        </div>
+        <div class="field">
+          <label for="precioMaxInput">Precio máximo</label>
+          <input id="precioMaxInput" type="number" min="0" step="100" placeholder="Ej. 15000">
+        </div>
+        <div class="field" style="grid-column: span 2;">
           <label for="textoInput">Texto libre</label>
           <input id="textoInput" type="text" placeholder="Apellido, materia, localidad...">
         </div>
@@ -421,18 +432,20 @@
   </a>
 
   <script>
-    const CSV_URL_PARTS = ["https://docs.google.com/spreadsheets/d/e/2PACX-1vQwYUwO", "H_lmSi_-ekHejCXS_cEyykjglVPsj5HxaIHXC8gO9bo742d4Fb-yhSR", "bbooBmeXbhdnTVLw8/pub?output=csv"];
-    const CSV_URL = CSV_URL_PARTS.join("");
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwYUwOH_lmSi_-ekHejCXS_cEyykjglVPsj5HxaIHXC8gO9bo742d4Fb-yhSRbbooBmeXbhdnTVLw8/pub?output=csv";
     const ALTA_FORM_URL = "https://docs.google.com/forms/d/e/10L6-55J9VFXR_oRt516hVOZGko88hfHp69mePUhqrcg/viewform";
     const CALIFICAR_URL = "https://forms.gle/on9vLtRGUnqp7fPE6";
 
     let docentes = [];
 
     const els = {
+      zona: document.getElementById("zonaSelect"),
       distrito: document.getElementById("distritoSelect"),
       localidad: document.getElementById("localidadSelect"),
       materia: document.getElementById("materiaSelect"),
       nivel: document.getElementById("nivelSelect"),
+      precioMin: document.getElementById("precioMinInput"),
+      precioMax: document.getElementById("precioMaxInput"),
       texto: document.getElementById("textoInput"),
       resultados: document.getElementById("resultados"),
       resumen: document.getElementById("resumenResultados"),
@@ -444,7 +457,8 @@
     const HEADER_ALIASES = {
       timestamp: ["marca temporal", "timestamp", "fecha", "fecha de carga", "actualización", "actualizacion"],
       activo: ["activo", "mostrar en buscador", "publicar perfil", "publicar"],
-      distrito: ["distrito", "distritos", "elige tu distrito", "zona"],
+      zona: ["zona", "region", "región", "area", "área"],
+      distrito: ["distrito", "distritos", "elige tu distrito"],
       apellido: ["apellido", "apellidos"],
       nombre: ["nombre", "nombres"],
       celular: ["celular", "whatsapp", "telefono", "teléfono", "número", "numero"],
@@ -569,9 +583,10 @@
       const activoRaw = getCell(row, headerMap, "activo");
       const activo = headerMap.activo === -1 ? true : parseBoolean(activoRaw);
 
+      const zona = titleCase(getCell(row, headerMap, "zona"));
       const distrito = titleCase(getCell(row, headerMap, "distrito"));
       const localidad = titleCase(getCell(row, headerMap, "localidad"));
-      const materia = getCell(row, headerMap, "materia");
+      const materia = titleCase(getCell(row, headerMap, "materia"));
       const nivel = titleCase(getCell(row, headerMap, "nivel"));
       const apellido = titleCase(getCell(row, headerMap, "apellido"));
       const nombre = titleCase(getCell(row, headerMap, "nombre"));
@@ -583,6 +598,7 @@
       return {
         timestamp: getCell(row, headerMap, "timestamp"),
         activo,
+        zona,
         distrito,
         localidad,
         materia,
@@ -600,7 +616,7 @@
     }
 
     function docenteValido(docente) {
-      return docente.activo && (docente.nombre || docente.apellido) && (docente.materia || docente.nivel || docente.localidad);
+      return docente.activo && (docente.nombre || docente.apellido) && (docente.materia || docente.nivel || docente.localidad || docente.distrito || docente.zona);
     }
 
     function getUniqueValues(list, field) {
@@ -624,6 +640,7 @@
       const haystack = normalizeText([
         docente.apellido,
         docente.nombre,
+        docente.zona,
         docente.distrito,
         docente.localidad,
         docente.materia,
@@ -634,39 +651,51 @@
     }
 
     function getFilteredData() {
+      const zona = els.zona.value;
       const distrito = els.distrito.value;
       const localidad = els.localidad.value;
-      const materia = els.materia.value;
       const nivel = els.nivel.value;
+      const materia = els.materia.value;
+      const precioMin = Number(els.precioMin.value || 0);
+      const precioMax = Number(els.precioMax.value || 0);
       const texto = els.texto.value;
 
       return docentes.filter(docente =>
+        (!zona || docente.zona === zona) &&
         (!distrito || docente.distrito === distrito) &&
         (!localidad || docente.localidad === localidad) &&
-        (!materia || docente.materia === materia) &&
         (!nivel || docente.nivel === nivel) &&
+        (!materia || docente.materia === materia) &&
+        (!precioMin || (docente.precio !== null && docente.precio >= precioMin)) &&
+        (!precioMax || (docente.precio !== null && docente.precio <= precioMax)) &&
         textoCoincide(docente, texto)
       );
     }
 
     function actualizarFiltros() {
+      const zona = els.zona.value;
       const distrito = els.distrito.value;
       const localidad = els.localidad.value;
-      const materia = els.materia.value;
       const nivel = els.nivel.value;
+      const materia = els.materia.value;
+      const precioMin = Number(els.precioMin.value || 0);
+      const precioMax = Number(els.precioMax.value || 0);
       const texto = els.texto.value;
 
-      let base = docentes;
-      if (distrito) base = base.filter(d => d.distrito === distrito);
-      if (localidad) base = base.filter(d => d.localidad === localidad);
-      if (materia) base = base.filter(d => d.materia === materia);
-      if (nivel) base = base.filter(d => d.nivel === nivel);
-      if (texto) base = base.filter(d => textoCoincide(d, texto));
+      const matchTexto = d => !texto || textoCoincide(d, texto);
+      const matchPrecio = d => (!precioMin || (d.precio !== null && d.precio >= precioMin)) && (!precioMax || (d.precio !== null && d.precio <= precioMax));
 
-      setSelectOptions(els.distrito, "Seleccione distrito", getUniqueValues(docentes, "distrito"));
-      setSelectOptions(els.localidad, "Seleccione localidad", getUniqueValues(base, "localidad"));
-      setSelectOptions(els.materia, "Seleccione materia", getUniqueValues(base, "materia"));
-      setSelectOptions(els.nivel, "Seleccione nivel", getUniqueValues(base, "nivel"));
+      const baseComun = docentes.filter(d => matchTexto(d) && matchPrecio(d));
+      const distritosDisponibles = baseComun.filter(d => !zona || d.zona === zona);
+      const localidadesDisponibles = baseComun.filter(d => (!zona || d.zona === zona) && (!distrito || d.distrito === distrito));
+      const nivelesDisponibles = baseComun.filter(d => (!zona || d.zona === zona) && (!distrito || d.distrito === distrito) && (!localidad || d.localidad === localidad));
+      const materiasDisponibles = baseComun.filter(d => (!zona || d.zona === zona) && (!distrito || d.distrito === distrito) && (!localidad || d.localidad === localidad) && (!nivel || d.nivel === nivel));
+
+      setSelectOptions(els.zona, "Seleccione zona", getUniqueValues(baseComun, "zona"));
+      setSelectOptions(els.distrito, "Seleccione distrito", getUniqueValues(distritosDisponibles, "distrito"));
+      setSelectOptions(els.localidad, "Seleccione localidad", getUniqueValues(localidadesDisponibles, "localidad"));
+      setSelectOptions(els.nivel, "Seleccione nivel", getUniqueValues(nivelesDisponibles, "nivel"));
+      setSelectOptions(els.materia, "Seleccione materia", getUniqueValues(materiasDisponibles, "materia"));
     }
 
     function obtenerEstrellas(valor) {
@@ -726,7 +755,7 @@
           <div class="card-head">
             <div>
               <h3>${escapeHtml([docente.apellido, docente.nombre].filter(Boolean).join(', '))}</h3>
-              <div class="muted">${escapeHtml([docente.localidad, docente.distrito].filter(Boolean).join(' · '))}</div>
+              <div class="muted">${escapeHtml([docente.localidad, docente.distrito, docente.zona].filter(Boolean).join(' · '))}</div>
             </div>
             <div class="badge">${escapeHtml(docente.nivel || 'Nivel a consultar')}</div>
           </div>
@@ -765,10 +794,13 @@
     }
 
     function limpiarFiltros() {
+      els.zona.value = "";
       els.distrito.value = "";
       els.localidad.value = "";
-      els.materia.value = "";
       els.nivel.value = "";
+      els.materia.value = "";
+      els.precioMin.value = "";
+      els.precioMax.value = "";
       els.texto.value = "";
       actualizarFiltros();
       renderResultados(docentes);
@@ -792,10 +824,11 @@
           .filter(docenteValido)
           .sort((a, b) => [a.apellido, a.nombre].join(' ').localeCompare([b.apellido, b.nombre].join(' '), 'es'));
 
+        setSelectOptions(els.zona, "Seleccione zona", getUniqueValues(docentes, "zona"), false);
         setSelectOptions(els.distrito, "Seleccione distrito", getUniqueValues(docentes, "distrito"), false);
         setSelectOptions(els.localidad, "Seleccione localidad", getUniqueValues(docentes, "localidad"), false);
-        setSelectOptions(els.materia, "Seleccione materia", getUniqueValues(docentes, "materia"), false);
         setSelectOptions(els.nivel, "Seleccione nivel", getUniqueValues(docentes, "nivel"), false);
+        setSelectOptions(els.materia, "Seleccione materia", getUniqueValues(docentes, "materia"), false);
 
         els.estado.textContent = `Base cargada correctamente. ${docentes.length} perfiles activos listos para buscar.`;
         renderResultados(docentes);
@@ -812,9 +845,10 @@
       }
     }
 
-    [els.distrito, els.localidad, els.materia, els.nivel].forEach(select => {
+    [els.zona, els.distrito, els.localidad, els.nivel, els.materia].forEach(select => {
       select.addEventListener("change", actualizarFiltros);
     });
+    [els.precioMin, els.precioMax].forEach(input => input.addEventListener("input", actualizarFiltros));
     els.texto.addEventListener("input", actualizarFiltros);
     els.texto.addEventListener("keydown", event => {
       if (event.key === "Enter") buscarDocentes();

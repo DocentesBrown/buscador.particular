@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscador de Docentes Particulares</title>
+  <style>
+    :root {
+      --color-primario: #24496e;
+      --color-secundario: #da6863;
+      --color-fondo: #f3efdc;
+      --color-acento: #4d3069;
+      --color-apoyo: #3d8fb0;
+      --color-whatsapp: #2b647b;
+      --color-texto: #17324b;
+      --color-tarjeta: rgba(255,255,255,0.96);
+      --sombra: 0 14px 30px rgba(36, 73, 110, 0.12);
+      --radio: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      color: var(--color-texto);
+      background:
+        radial-gradient(circle at top left, rgba(61,143,176,0.10), transparent 30%),
+        radial-gradient(circle at top right, rgba(77,48,105,0.10), transparent 26%),
+        linear-gradient(180deg, #f8f4e8 0%, var(--color-fondo) 100%);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      width: min(1100px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(36,73,110,0.99), rgba(77,48,105,0.98));
+      color: #fff;
+      border-radius: 28px;
+      padding: 28px 22px;
+      box-shadow: var(--sombra);
+      margin-bottom: 22px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,0.13), transparent 22%),
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 14px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.9rem, 4vw, 2.9rem);
+      line-height: 1.05;
+    }
+
+    .hero-main,
+    .hero-note {
+      border-radius: 20px;
+      padding: 16px 18px;
+      backdrop-filter: blur(4px);
+    }
+
+    .hero-main {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+
+    .hero-note {
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.24);
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 850px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.96);
+    }
+
+    .hero a {
+      color: #fff2c6;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .panel {
+      background: var(--color-tarjeta);
+      border: 1px solid rgba(36,73,110,0.12);
+      border-radius: 24px;
+      box-shadow: var(--sombra);
+      padding: 18px;
+      margin-bottom: 18px;
+      backdrop-filter: blur(6px);
+    }
+
+    .panel-title {
+      margin: 0 0 6px;
+      color: var(--color-acento);
+      font-size: 1.15rem;
+    }
+
+    .panel-subtitle {
+      margin: 0 0 18px;
+      color: rgba(23,50,75,0.82);
+      font-size: 0.96rem;
+      line-height: 1.45;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--color-primario);
+    }
+
+    select, input, button {
+      width: 100%;
+      border: 1px solid rgba(36,73,110,0.28);
+      border-radius: 14px;
+      padding: 12px 13px;
+      font-size: 0.98rem;
+      background: #fff;
+      color: var(--color-texto);
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid rgba(61,143,176,0.18);
+      border-color: var(--color-apoyo);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-secundario), #ef9963);
+      color: #fff;
+      border: none;
+      box-shadow: 0 8px 18px rgba(218,104,99,0.24);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--color-primario);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      color: rgba(23,50,75,0.85);
+      font-size: 0.96rem;
+    }
+
+    .resultados-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.98);
+      border: 1px solid rgba(36,73,110,0.12);
+      border-radius: var(--radio);
+      padding: 16px;
+      box-shadow: var(--sombra);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card h3 {
+      margin: 0;
+      color: var(--color-acento);
+      font-size: 1.15rem;
+    }
+
+    .muted {
+      color: rgba(23,50,75,0.74);
+      font-size: 0.92rem;
+    }
+
+    .badges, .modalidades {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge,
+    .modalidad-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 0.87rem;
+      font-weight: 700;
+    }
+
+    .badge {
+      background: rgba(61,143,176,0.12);
+      color: var(--color-primario);
+    }
+
+    .modalidad-chip {
+      background: var(--color-primario);
+      color: white;
+    }
+
+    .price {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--color-primario);
+    }
+
+    .stars {
+      color: #d19a00;
+      font-size: 1.08rem;
+      letter-spacing: 0.06em;
+    }
+
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 14px;
+      border-radius: 14px;
+      text-decoration: none;
+      color: white;
+      font-weight: 700;
+      min-height: 44px;
+      flex: 1 1 180px;
+    }
+
+    .button.main { background: var(--color-primario); }
+    .button.whatsapp { background: var(--color-whatsapp); }
+    .button.rate { background: var(--color-acento); }
+
+    .empty, .loading, .error {
+      text-align: center;
+      padding: 30px 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.9);
+      color: var(--color-primario);
+      border: 1px dashed rgba(36,73,110,0.24);
+    }
+
+    .helper-list {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.55;
+    }
+
+    code.inline {
+      background: rgba(61,143,176,0.12);
+      padding: 2px 7px;
+      border-radius: 8px;
+      font-size: 0.92em;
+    }
+
+    .disclaimer {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(218,104,99,0.10);
+      border: 1px solid rgba(218,104,99,0.24);
+      color: var(--color-texto);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .floating-cta {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 999;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--color-secundario), #ef9963);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      box-shadow: 0 14px 30px rgba(218,104,99,0.30);
+      border: 1px solid rgba(255,255,255,0.18);
+      max-width: calc(100% - 24px);
+    }
+
+    .floating-cta:hover {
+      transform: translateY(-1px);
+    }
+
+    .range-field {
+      grid-column: span 2;
+    }
+
+    .range-wrap {
+      background: #fff;
+      border: 1px solid rgba(36,73,110,0.28);
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+    }
+
+    .range-values {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-weight: 700;
+      color: var(--color-primario);
+      font-size: 0.95rem;
+    }
+
+    .range-sliders {
+      position: relative;
+      height: 34px;
+    }
+
+    .range-track,
+    .range-progress {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 6px;
+      border-radius: 999px;
+    }
+
+    .range-track {
+      background: rgba(36,73,110,0.12);
+    }
+
+    .range-progress {
+      background: linear-gradient(135deg, var(--color-secundario), var(--color-apoyo));
+    }
+
+    .range-sliders input[type=range] {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      border: none;
+      appearance: none;
+      pointer-events: none;
+    }
+
+    .range-sliders input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--color-acento);
+      box-shadow: 0 4px 10px rgba(36,73,110,0.18);
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .range-sliders input[type=range]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--color-acento);
+      box-shadow: 0 4px 10px rgba(36,73,110,0.18);
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .range-sliders input[type=range]::-webkit-slider-runnable-track,
+    .range-sliders input[type=range]::-moz-range-track {
+      background: transparent;
+      border: none;
+      height: 6px;
+    }
+
+    .range-note {
+      margin-top: 8px;
+      color: rgba(23,50,75,0.72);
+      font-size: 0.86rem;
+    }
+
+    @media (max-width: 900px) {
+      .filters { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .wrap { width: min(100% - 18px, 1100px); padding-top: 16px; }
+      .hero { border-radius: 22px; padding: 22px 16px; }
+      .panel { border-radius: 20px; padding: 15px; }
+      .filters { grid-template-columns: 1fr; }
+      .toolbar { align-items: stretch; }
+      .card-actions { flex-direction: column; }
+      .button { flex: 1 1 auto; }
+      .floating-cta {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        justify-content: center;
+        text-align: center;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Buscador de Docentes Particulares</h1>
+        <div class="hero-main">
+          <p>
+            Una red para conectar a quienes enseñan con quienes necesitan apoyo escolar o académico.
+            Desarrollado por
+            <a href="https://www.instagram.com/docentesbrown" target="_blank" rel="noopener noreferrer">@docentesbrown</a>.
+            La plataforma organiza búsquedas y contactos, pero no intermedia en acuerdos económicos ni garantiza la información declarada por cada docente.
+          </p>
+        </div>
+        <div class="hero-note">
+          <p>
+            Importante: los perfiles publicados en esta base de datos pertenecen a personas que completaron el formulario de manera voluntaria.
+            No son empleados de Docentes Brown ni representan institucionalmente a Docentes Brown. La plataforma solo facilita la visibilidad de los datos para contacto directo entre las partes.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-title">Buscar docentes</h2>
+      <p class="panel-subtitle">
+        Seleccioná los filtros de búsqueda.
+      </p>
+
+      <div class="filters">
+        <div class="field">
+          <label for="zonaSelect">Zona</label>
+          <select id="zonaSelect"></select>
+        </div>
+        <div class="field">
+          <label for="distritoSelect">Distrito</label>
+          <select id="distritoSelect"></select>
+        </div>
+        <div class="field">
+          <label for="localidadSelect">Localidad</label>
+          <select id="localidadSelect"></select>
+        </div>
+        <div class="field">
+          <label for="nivelSelect">Nivel</label>
+          <select id="nivelSelect"></select>
+        </div>
+        <div class="field">
+          <label for="materiaSelect">Materia</label>
+          <select id="materiaSelect"></select>
+        </div>
+        <div class="field range-field">
+          <label for="precioMinRange">Rango de precio por hora</label>
+          <div class="range-wrap">
+            <div class="range-values">
+              <span id="precioMinLabel">Mín: —</span>
+              <span id="precioMaxLabel">Máx: —</span>
+            </div>
+            <div class="range-sliders">
+              <div class="range-track"></div>
+              <div class="range-progress" id="rangeProgress"></div>
+              <input id="precioMinRange" type="range" min="0" max="100" value="0" step="100">
+              <input id="precioMaxRange" type="range" min="0" max="100" value="100" step="100">
+            </div>
+            <div class="range-note" id="precioRangeNote">Ajustá el mínimo y el máximo según el presupuesto.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-secondary" id="limpiarBtn" type="button">Limpiar filtros</button>
+        <button class="btn-secondary" id="compartirBtn" type="button">Compartir app</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <strong id="resumenResultados">Cargando datos...</strong>
+        <span class="status" id="estadoCarga">Preparando base de datos…</span>
+      </div>
+      <div id="resultados" class="resultados-grid">
+        <div class="loading">Cargando docentes…</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-title">Sobre la base de datos</h2>
+      <p class="panel-subtitle">
+        Esta app lee una hoja pública de Google Sheets generada a partir de un formulario. Por eso los datos visibles son únicamente los que cada persona decidió compartir para ofrecer clases particulares.
+      </p>
+      <div class="disclaimer">
+        Docentes Brown no emplea, contrata ni certifica a quienes aparecen en el listado. Cada contacto, acuerdo, modalidad de pago y verificación de antecedentes queda bajo responsabilidad de las personas involucradas.
+      </div>
+    </section>
+  </div>
+
+  <a class="floating-cta" href="https://forms.gle/efXzwg1jhtvpf33YA" target="_blank" rel="noopener noreferrer" aria-label="Sumarme a la base de datos">
+    <i class="fas fa-user-plus"></i>
+    Quiero sumarme a la base de datos
+  </a>
+
+  <script>
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwYUwOH_lmSi_-ekHejCXS_cEyykjglVPsj5HxaIHXC8gO9bo742d4Fb-yhSRbbooBmeXbhdnTVLw8/pub?output=csv";
+    const ALTA_FORM_URL = "https://forms.gle/efXzwg1jhtvpf33YA";
+    const CALIFICAR_URL = "https://forms.gle/on9vLtRGUnqp7fPE6";
+
+    let docentes = [];
+
+    const els = {
+      zona: document.getElementById("zonaSelect"),
+      distrito: document.getElementById("distritoSelect"),
+      localidad: document.getElementById("localidadSelect"),
+      materia: document.getElementById("materiaSelect"),
+      nivel: document.getElementById("nivelSelect"),
+      precioMin: document.getElementById("precioMinRange"),
+      precioMax: document.getElementById("precioMaxRange"),
+      precioMinLabel: document.getElementById("precioMinLabel"),
+      precioMaxLabel: document.getElementById("precioMaxLabel"),
+      precioRangeNote: document.getElementById("precioRangeNote"),
+      rangeProgress: document.getElementById("rangeProgress"),
+      resultados: document.getElementById("resultados"),
+      resumen: document.getElementById("resumenResultados"),
+      estado: document.getElementById("estadoCarga"),
+      limpiar: document.getElementById("limpiarBtn"),
+      compartir: document.getElementById("compartirBtn"),
+      altaBtn: document.querySelector(".floating-cta")
+    };
+
+    const HEADER_ALIASES = {
+      timestamp: ["marca temporal", "timestamp", "fecha", "fecha de carga", "actualización", "actualizacion"],
+      activo: ["activo", "mostrar en buscador", "publicar perfil", "publicar"],
+      zona: ["zona", "region", "región", "area", "área"],
+      distrito: ["distrito", "distritos", "elige tu distrito"],
+      apellido: ["apellido", "apellidos"],
+      nombre: ["nombre", "nombres"],
+      celular: ["celular", "whatsapp", "telefono", "teléfono", "número", "numero"],
+      enSuDomicilio: ["domicilio propio", "en su domicilio", "clases en su domicilio", "¿das clases en tu domicilio?", "das clases en tu domicilio"],
+      otroDomicilio: ["otro domicilio", "va a domicilio", "a domicilio", "clases a domicilio", "¿vas a otro domicilio?", "vas a otro domicilio"],
+      virtual: ["virtual", "clases virtuales", "modalidad virtual", "¿das clase virtual?", "das clase virtual", "¿das clases virtuales?"],
+      precio: ["precio por hora", "precio", "valor por hora", "tarifa", "precio x hora"],
+      nivel: ["nivel", "nivel educativo", "para que nivel das:", "para que nivel das"],
+      materia: ["materia", "materias", "área", "area", "disciplina"],
+      localidad: ["localidad", "ciudad", "localidad del amba o gba"],
+      calificacion: ["calificación", "calificacion", "puntaje", "rating"],
+      descripcion: ["descripción", "descripcion", "presentación", "presentacion", "observaciones", "bio"]
+    };
+
+    function normalizeText(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .toLowerCase();
+    }
+
+    function titleCase(value) {
+      return String(value || "")
+        .toLowerCase()
+        .split(" ")
+        .filter(Boolean)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            cell += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          row.push(cell);
+          cell = "";
+        } else if ((char === '\n' || char === '\r') && !inQuotes) {
+          if (char === '\r' && next === '\n') i++;
+          row.push(cell);
+          if (row.some(item => item !== "")) rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += char;
+        }
+      }
+
+      row.push(cell);
+      if (row.some(item => item !== "")) rows.push(row);
+      return rows;
+    }
+
+    function detectHeaderIndex(headers, aliases) {
+      const normalizedHeaders = headers.map(normalizeText);
+      for (const alias of aliases) {
+        const index = normalizedHeaders.findIndex(h => h === normalizeText(alias));
+        if (index !== -1) return index;
+      }
+      return -1;
+    }
+
+    function buildHeaderMap(headers) {
+      const map = {};
+      for (const [key, aliases] of Object.entries(HEADER_ALIASES)) {
+        map[key] = detectHeaderIndex(headers, aliases);
+      }
+      return map;
+    }
+
+    function validateCSVUrl() {
+      if (!CSV_URL) {
+        throw new Error("No hay un link CSV público configurado.");
+      }
+    }
+
+    function getCell(row, headerMap, key) {
+      const index = headerMap[key];
+      return index >= 0 ? String(row[index] || "").trim() : "";
+    }
+
+    function parseBoolean(value) {
+      const normalized = normalizeText(value);
+      return ["si", "sí", "true", "1", "ok", "activo", "publicar"].includes(normalized);
+    }
+
+    function parsePrice(value) {
+      const cleaned = String(value || "").replace(/[^\d.,]/g, "").replace(/\./g, "").replace(/,/g, ".");
+      const number = Number(cleaned);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function parseRating(value) {
+      const number = Number(String(value || "").replace(/,/g, "."));
+      if (!Number.isFinite(number)) return null;
+      return Math.max(0, Math.min(5, number));
+    }
+
+    function cleanPhone(value) {
+      let celular = String(value || "").replace(/\D/g, "");
+      if (!celular) return "";
+      if (celular.startsWith("0")) celular = celular.slice(1);
+      if (!celular.startsWith("54")) celular = "54" + celular;
+      return celular;
+    }
+
+    function mapRowToDocente(row, headerMap) {
+      const activoRaw = getCell(row, headerMap, "activo");
+      const activo = headerMap.activo === -1 ? true : parseBoolean(activoRaw);
+
+      const zona = titleCase(getCell(row, headerMap, "zona"));
+      const distrito = titleCase(getCell(row, headerMap, "distrito"));
+      const localidad = titleCase(getCell(row, headerMap, "localidad"));
+      const materia = titleCase(getCell(row, headerMap, "materia"));
+      const nivel = titleCase(getCell(row, headerMap, "nivel"));
+      const apellido = titleCase(getCell(row, headerMap, "apellido"));
+      const nombre = titleCase(getCell(row, headerMap, "nombre"));
+      const descripcion = getCell(row, headerMap, "descripcion");
+      const celular = cleanPhone(getCell(row, headerMap, "celular"));
+      const precio = parsePrice(getCell(row, headerMap, "precio"));
+      const calificacion = parseRating(getCell(row, headerMap, "calificacion"));
+
+      return {
+        timestamp: getCell(row, headerMap, "timestamp"),
+        activo,
+        zona,
+        distrito,
+        localidad,
+        materia,
+        nivel,
+        apellido,
+        nombre,
+        descripcion,
+        celular,
+        precio,
+        calificacion,
+        enSuDomicilio: parseBoolean(getCell(row, headerMap, "enSuDomicilio")),
+        otroDomicilio: parseBoolean(getCell(row, headerMap, "otroDomicilio")),
+        virtual: parseBoolean(getCell(row, headerMap, "virtual"))
+      };
+    }
+
+    function docenteValido(docente) {
+      return docente.activo && (docente.nombre || docente.apellido) && (docente.materia || docente.nivel || docente.localidad || docente.distrito || docente.zona);
+    }
+
+    function getUniqueValues(list, field) {
+      return [...new Set(list.map(item => item[field]).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
+    }
+
+    function setSelectOptions(select, placeholder, values, preserveValue = true) {
+      const previous = preserveValue ? select.value : "";
+      select.innerHTML = `<option value="">${placeholder}</option>`;
+      values.forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+      if (preserveValue && values.includes(previous)) select.value = previous;
+    }
+
+
+    function getFilteredData() {
+      const zona = els.zona.value;
+      const distrito = els.distrito.value;
+      const localidad = els.localidad.value;
+      const nivel = els.nivel.value;
+      const materia = els.materia.value;
+      const precioMin = Number(els.precioMin.value || 0);
+      const precioMax = Number(els.precioMax.value || 0);
+
+      return docentes.filter(docente =>
+        (!zona || docente.zona === zona) &&
+        (!distrito || docente.distrito === distrito) &&
+        (!localidad || docente.localidad === localidad) &&
+        (!nivel || docente.nivel === nivel) &&
+        (!materia || docente.materia === materia) &&
+        (docente.precio !== null && docente.precio >= precioMin && docente.precio <= precioMax)
+      );
+    }
+
+    function getFilteredDataWithoutPrice() {
+      const zona = els.zona.value;
+      const distrito = els.distrito.value;
+      const localidad = els.localidad.value;
+      const nivel = els.nivel.value;
+      const materia = els.materia.value;
+
+      return docentes.filter(docente =>
+        (!zona || docente.zona === zona) &&
+        (!distrito || docente.distrito === distrito) &&
+        (!localidad || docente.localidad === localidad) &&
+        (!nivel || docente.nivel === nivel) &&
+        (!materia || docente.materia === materia) &&
+        docente.precio !== null
+      );
+    }
+
+    function updatePriceUI(minValue, maxValue, availableMin, availableMax) {
+      els.precioMin.min = String(availableMin);
+      els.precioMin.max = String(availableMax);
+      els.precioMax.min = String(availableMin);
+      els.precioMax.max = String(availableMax);
+      els.precioMin.value = String(minValue);
+      els.precioMax.value = String(maxValue);
+
+      els.precioMinLabel.textContent = `Mín: ${formatCurrency(minValue)}`;
+      els.precioMaxLabel.textContent = `Máx: ${formatCurrency(maxValue)}`;
+      els.precioRangeNote.textContent = `Valores disponibles hoy: ${formatCurrency(availableMin)} a ${formatCurrency(availableMax)}.`;
+
+      const total = Math.max(availableMax - availableMin, 1);
+      const left = ((minValue - availableMin) / total) * 100;
+      const right = ((maxValue - availableMin) / total) * 100;
+      els.rangeProgress.style.left = `${left}%`;
+      els.rangeProgress.style.right = `${100 - right}%`;
+    }
+
+    function updatePriceRangeBounds() {
+      const baseWithoutPrice = getFilteredDataWithoutPrice();
+      const prices = baseWithoutPrice.map(d => d.precio).filter(v => Number.isFinite(v)).sort((a, b) => a - b);
+
+      if (!prices.length) {
+        updatePriceUI(0, 0, 0, 0);
+        return;
+      }
+
+      const availableMin = prices[0];
+      const availableMax = prices[prices.length - 1];
+      const touchedMin = els.precioMin.dataset.touched === "1";
+      const touchedMax = els.precioMax.dataset.touched === "1";
+      let currentMin = touchedMin ? Number(els.precioMin.value) : availableMin;
+      let currentMax = touchedMax ? Number(els.precioMax.value) : availableMax;
+
+      if (!Number.isFinite(currentMin)) currentMin = availableMin;
+      if (!Number.isFinite(currentMax)) currentMax = availableMax;
+
+      currentMin = Math.max(availableMin, Math.min(currentMin, availableMax));
+      currentMax = Math.max(availableMin, Math.min(currentMax, availableMax));
+      if (currentMin > currentMax) {
+        if (document.activeElement === els.precioMin) {
+          currentMax = currentMin;
+        } else {
+          currentMin = currentMax;
+        }
+      }
+
+      updatePriceUI(currentMin, currentMax, availableMin, availableMax);
+    }
+
+    function actualizarFiltros() {
+      const zona = els.zona.value;
+      const distrito = els.distrito.value;
+      const localidad = els.localidad.value;
+      const nivel = els.nivel.value;
+      const materia = els.materia.value;
+
+      const baseComun = docentes;
+      const distritosDisponibles = baseComun.filter(d => !zona || d.zona === zona);
+      const localidadesDisponibles = baseComun.filter(d => (!zona || d.zona === zona) && (!distrito || d.distrito === distrito));
+      const nivelesDisponibles = baseComun.filter(d => (!zona || d.zona === zona) && (!distrito || d.distrito === distrito) && (!localidad || d.localidad === localidad));
+      const materiasDisponibles = baseComun.filter(d => (!zona || d.zona === zona) && (!distrito || d.distrito === distrito) && (!localidad || d.localidad === localidad) && (!nivel || d.nivel === nivel));
+
+      setSelectOptions(els.zona, "Seleccione zona", getUniqueValues(baseComun, "zona"));
+      setSelectOptions(els.distrito, "Seleccione distrito", getUniqueValues(distritosDisponibles, "distrito"));
+      setSelectOptions(els.localidad, "Seleccione localidad", getUniqueValues(localidadesDisponibles, "localidad"));
+      setSelectOptions(els.nivel, "Seleccione nivel", getUniqueValues(nivelesDisponibles, "nivel"));
+      setSelectOptions(els.materia, "Seleccione materia", getUniqueValues(materiasDisponibles, "materia"));
+      updatePriceRangeBounds();
+    }
+
+    function obtenerEstrellas(valor) {
+      if (valor === null || valor === undefined) return "Sin calificar";
+      const llenas = Math.floor(valor);
+      const media = (valor % 1) >= 0.5 ? 1 : 0;
+      let estrellas = "";
+      for (let i = 0; i < llenas; i++) estrellas += "★";
+      if (media) estrellas += "☆";
+      for (let i = llenas + media; i < 5; i++) estrellas += "✩";
+      return estrellas;
+    }
+
+    function formatCurrency(value) {
+      if (value === null || value === undefined) return "A coordinar";
+      return new Intl.NumberFormat("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        maximumFractionDigits: 0
+      }).format(value);
+    }
+
+    function getWhatsappLink(celular, nombre) {
+      if (!celular) return "";
+      const texto = encodeURIComponent(`Hola ${nombre || ""}, encontré tu perfil en el buscador de Docentes Brown y me gustaría consultar por clases particulares.`.trim());
+      return `https://wa.me/${celular}?text=${texto}`;
+    }
+
+    function renderResultados(lista) {
+      els.resultados.innerHTML = "";
+      els.resumen.textContent = `${lista.length} docente${lista.length === 1 ? "" : "s"} encontrado${lista.length === 1 ? "" : "s"}`;
+
+      if (!lista.length) {
+        els.resultados.innerHTML = `
+          <div class="empty">
+            No encontré resultados con esos filtros.<br>
+            Probá limpiar algún criterio o abrir el rango de precios.
+          </div>
+        `;
+        return;
+      }
+
+      lista.forEach(docente => {
+        const modalidades = [
+          docente.enSuDomicilio ? '<span class="modalidad-chip"><i class="fas fa-home"></i> En su domicilio</span>' : '',
+          docente.otroDomicilio ? '<span class="modalidad-chip"><i class="fas fa-location-arrow"></i> A domicilio</span>' : '',
+          docente.virtual ? '<span class="modalidad-chip"><i class="fas fa-laptop"></i> Virtual</span>' : ''
+        ].filter(Boolean).join('');
+
+        const whatsapp = getWhatsappLink(docente.celular, docente.nombre);
+        const descripcion = docente.descripcion ? `<div class="muted">${escapeHtml(docente.descripcion)}</div>` : '';
+        const fecha = docente.timestamp ? `<div class="muted">Perfil cargado: ${escapeHtml(docente.timestamp)}</div>` : '';
+
+        const card = document.createElement("article");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-head">
+            <div>
+              <h3>${escapeHtml([docente.apellido, docente.nombre].filter(Boolean).join(', '))}</h3>
+              <div class="muted">${escapeHtml([docente.localidad, docente.distrito, docente.zona].filter(Boolean).join(' · '))}</div>
+            </div>
+            <div class="badge">${escapeHtml(docente.nivel || 'Nivel a consultar')}</div>
+          </div>
+
+          <div class="badges">
+            ${docente.materia ? `<span class="badge"><i class="fas fa-book"></i> ${escapeHtml(docente.materia)}</span>` : ''}
+            <span class="badge"><i class="fas fa-wallet"></i> ${escapeHtml(formatCurrency(docente.precio))}</span>
+            <span class="badge"><i class="fas fa-star"></i> ${escapeHtml(obtenerEstrellas(docente.calificacion))}</span>
+          </div>
+
+          ${modalidades ? `<div class="modalidades">${modalidades}</div>` : ''}
+          ${descripcion}
+          ${fecha}
+
+          <div class="card-actions">
+            ${whatsapp ? `<a class="button whatsapp" href="${whatsapp}" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> WhatsApp</a>` : ''}
+            <a class="button rate" href="${CALIFICAR_URL}" target="_blank" rel="noopener noreferrer"><i class="fas fa-star"></i> Calificar docente</a>
+          </div>
+        `;
+        els.resultados.appendChild(card);
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+
+    async function compartirApp() {
+      const shareData = {
+        title: document.title,
+        text: "Te comparto esta app para buscar docentes particulares.",
+        url: window.location.href
+      };
+
+      try {
+        if (navigator.share) {
+          await navigator.share(shareData);
+          return;
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(window.location.href);
+          alert("El enlace de la app se copió al portapapeles.");
+          return;
+        }
+
+        prompt("Copiá este enlace para compartir la app:", window.location.href);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function limpiarFiltros() {
+      els.zona.value = "";
+      els.distrito.value = "";
+      els.localidad.value = "";
+      els.nivel.value = "";
+      els.materia.value = "";
+      els.precioMin.value = "";
+      els.precioMax.value = "";
+      actualizarFiltros();
+      renderResultados(getFilteredData());
+    }
+
+    async function cargarDatos() {
+      els.estado.textContent = "Leyendo hoja de respuestas…";
+      try {
+        validateCSVUrl();
+        const response = await fetch(CSV_URL, { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const csv = await response.text();
+        const rows = parseCSV(csv);
+        if (!rows.length) throw new Error("La hoja no tiene datos.");
+
+        const headers = rows[0];
+        const headerMap = buildHeaderMap(headers);
+        docentes = rows
+          .slice(1)
+          .map(row => mapRowToDocente(row, headerMap))
+          .filter(docenteValido)
+          .sort((a, b) => [a.apellido, a.nombre].join(' ').localeCompare([b.apellido, b.nombre].join(' '), 'es'));
+
+        setSelectOptions(els.zona, "Seleccione zona", getUniqueValues(docentes, "zona"), false);
+        setSelectOptions(els.distrito, "Seleccione distrito", getUniqueValues(docentes, "distrito"), false);
+        setSelectOptions(els.localidad, "Seleccione localidad", getUniqueValues(docentes, "localidad"), false);
+        setSelectOptions(els.nivel, "Seleccione nivel", getUniqueValues(docentes, "nivel"), false);
+        setSelectOptions(els.materia, "Seleccione materia", getUniqueValues(docentes, "materia"), false);
+        updatePriceRangeBounds();
+
+        els.estado.textContent = `Base cargada correctamente. ${docentes.length} perfiles activos listos para buscar.`;
+        renderResultados(getFilteredData());
+      } catch (error) {
+        console.error(error);
+        els.estado.textContent = "No pude cargar la base de datos.";
+        els.resumen.textContent = "Error de carga";
+        els.resultados.innerHTML = `
+          <div class="error">
+            Hubo un problema al leer la hoja de respuestas.<br>
+            Revisá que la hoja siga publicada como CSV y que los encabezados existan.
+          </div>
+        `;
+      }
+    }
+
+    function applyFiltersAutomatically() {
+      actualizarFiltros();
+      renderResultados(getFilteredData());
+    }
+
+    [els.zona, els.distrito, els.localidad, els.nivel, els.materia].forEach(select => {
+      select.addEventListener("change", applyFiltersAutomatically);
+    });
+    els.precioMin.addEventListener("input", () => {
+      els.precioMin.dataset.touched = "1";
+      updatePriceRangeBounds();
+      renderResultados(getFilteredData());
+    });
+    els.precioMax.addEventListener("input", () => {
+      els.precioMax.dataset.touched = "1";
+      updatePriceRangeBounds();
+      renderResultados(getFilteredData());
+    });
+    els.limpiar.addEventListener("click", () => {
+      delete els.precioMin.dataset.touched;
+      delete els.precioMax.dataset.touched;
+      limpiarFiltros();
+    });
+    els.compartir.addEventListener("click", compartirApp);
+    if (els.altaBtn) {
+      els.altaBtn.href = ALTA_FORM_URL;
+    }
+
+    cargarDatos();
+  </script>
+</body>
+</html>

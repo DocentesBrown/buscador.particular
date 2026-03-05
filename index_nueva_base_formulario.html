@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscador de Docentes Particulares</title>
+  <style>
+    :root {
+      --color-primario: #24496e;
+      --color-secundario: #da6863;
+      --color-fondo: #f3efdc;
+      --color-acento: #4d3069;
+      --color-apoyo: #3d8fb0;
+      --color-whatsapp: #2b647b;
+      --color-texto: #17324b;
+      --color-tarjeta: rgba(255,255,255,0.96);
+      --sombra: 0 14px 30px rgba(36, 73, 110, 0.12);
+      --radio: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      color: var(--color-texto);
+      background:
+        radial-gradient(circle at top left, rgba(61,143,176,0.10), transparent 30%),
+        radial-gradient(circle at top right, rgba(77,48,105,0.10), transparent 26%),
+        linear-gradient(180deg, #f8f4e8 0%, var(--color-fondo) 100%);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      width: min(1100px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(36,73,110,0.98), rgba(77,48,105,0.96));
+      color: #fff;
+      border-radius: 28px;
+      padding: 28px 22px;
+      box-shadow: var(--sombra);
+      margin-bottom: 22px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.9rem, 4vw, 2.9rem);
+      line-height: 1.05;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 850px;
+      line-height: 1.55;
+      color: rgba(255,255,255,0.92);
+    }
+
+    .hero a {
+      color: #fff2c6;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .panel {
+      background: var(--color-tarjeta);
+      border: 1px solid rgba(36,73,110,0.12);
+      border-radius: 24px;
+      box-shadow: var(--sombra);
+      padding: 18px;
+      margin-bottom: 18px;
+      backdrop-filter: blur(6px);
+    }
+
+    .panel-title {
+      margin: 0 0 6px;
+      color: var(--color-acento);
+      font-size: 1.15rem;
+    }
+
+    .panel-subtitle {
+      margin: 0 0 18px;
+      color: rgba(23,50,75,0.82);
+      font-size: 0.96rem;
+      line-height: 1.45;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--color-primario);
+    }
+
+    select, input, button {
+      width: 100%;
+      border: 1px solid rgba(36,73,110,0.28);
+      border-radius: 14px;
+      padding: 12px 13px;
+      font-size: 0.98rem;
+      background: #fff;
+      color: var(--color-texto);
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid rgba(61,143,176,0.18);
+      border-color: var(--color-apoyo);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-secundario), #ef9963);
+      color: #fff;
+      border: none;
+      box-shadow: 0 8px 18px rgba(218,104,99,0.24);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--color-primario);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      color: rgba(23,50,75,0.85);
+      font-size: 0.96rem;
+    }
+
+    .resultados-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.98);
+      border: 1px solid rgba(36,73,110,0.12);
+      border-radius: var(--radio);
+      padding: 16px;
+      box-shadow: var(--sombra);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card h3 {
+      margin: 0;
+      color: var(--color-acento);
+      font-size: 1.15rem;
+    }
+
+    .muted {
+      color: rgba(23,50,75,0.74);
+      font-size: 0.92rem;
+    }
+
+    .badges, .modalidades {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge,
+    .modalidad-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 0.87rem;
+      font-weight: 700;
+    }
+
+    .badge {
+      background: rgba(61,143,176,0.12);
+      color: var(--color-primario);
+    }
+
+    .modalidad-chip {
+      background: var(--color-primario);
+      color: white;
+    }
+
+    .price {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--color-primario);
+    }
+
+    .stars {
+      color: #d19a00;
+      font-size: 1.08rem;
+      letter-spacing: 0.06em;
+    }
+
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 14px;
+      border-radius: 14px;
+      text-decoration: none;
+      color: white;
+      font-weight: 700;
+      min-height: 44px;
+      flex: 1 1 180px;
+    }
+
+    .button.main { background: var(--color-primario); }
+    .button.whatsapp { background: var(--color-whatsapp); }
+    .button.rate { background: var(--color-acento); }
+
+    .empty, .loading, .error {
+      text-align: center;
+      padding: 30px 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.9);
+      color: var(--color-primario);
+      border: 1px dashed rgba(36,73,110,0.24);
+    }
+
+    .helper-list {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.55;
+    }
+
+    code.inline {
+      background: rgba(61,143,176,0.12);
+      padding: 2px 7px;
+      border-radius: 8px;
+      font-size: 0.92em;
+    }
+
+    @media (max-width: 900px) {
+      .filters { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .wrap { width: min(100% - 18px, 1100px); padding-top: 16px; }
+      .hero { border-radius: 22px; padding: 22px 16px; }
+      .panel { border-radius: 20px; padding: 15px; }
+      .filters { grid-template-columns: 1fr; }
+      .toolbar { align-items: stretch; }
+      .card-actions { flex-direction: column; }
+      .button { flex: 1 1 auto; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Buscador de Docentes Particulares</h1>
+      <p>
+        Una red para conectar a quienes enseñan con quienes necesitan apoyo escolar o académico.
+        Desarrollado por
+        <a href="https://www.instagram.com/docentesbrown" target="_blank" rel="noopener noreferrer">@docentesbrown</a>.
+        La plataforma organiza búsquedas y contactos, pero no intermedia en acuerdos económicos ni garantiza la información declarada por cada docente.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-title">Buscar docentes</h2>
+      <p class="panel-subtitle">
+        Esta versión está preparada para leer la hoja de respuestas del formulario como una base de datos mucho más estable,
+        usando encabezados en vez de posiciones fijas de columnas.
+      </p>
+
+      <div class="filters">
+        <div class="field">
+          <label for="distritoSelect">Distrito</label>
+          <select id="distritoSelect"></select>
+        </div>
+        <div class="field">
+          <label for="localidadSelect">Localidad</label>
+          <select id="localidadSelect"></select>
+        </div>
+        <div class="field">
+          <label for="materiaSelect">Materia</label>
+          <select id="materiaSelect"></select>
+        </div>
+        <div class="field">
+          <label for="nivelSelect">Nivel</label>
+          <select id="nivelSelect"></select>
+        </div>
+        <div class="field">
+          <label for="textoInput">Texto libre</label>
+          <input id="textoInput" type="text" placeholder="Apellido, materia, localidad...">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary" id="buscarBtn" type="button">Buscar</button>
+        <button class="btn-secondary" id="limpiarBtn" type="button">Limpiar filtros</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <strong id="resumenResultados">Cargando datos...</strong>
+        <span class="status" id="estadoCarga">Preparando base de datos…</span>
+      </div>
+      <div id="resultados" class="resultados-grid">
+        <div class="loading">Cargando docentes…</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-title">Cómo conviene armar el formulario</h2>
+      <p class="panel-subtitle">Para que las respuestas te sirvan como base de datos real, estas preguntas deberían existir con nombres consistentes.</p>
+      <ol class="helper-list">
+        <li><strong>Activo</strong>: “Sí / No” para ocultar temporalmente docentes sin borrar respuestas.</li>
+        <li><strong>Apellido</strong> y <strong>Nombre</strong>.</li>
+        <li><strong>WhatsApp</strong> en formato claro.</li>
+        <li><strong>Distrito</strong> y <strong>Localidad</strong> con opciones cerradas.</li>
+        <li><strong>Materia</strong> con una sola materia por envío. Si da varias, que complete otro envío o usar una lista separada con delimitador fijo.</li>
+        <li><strong>Nivel</strong> con opciones cerradas: Inicial, Primaria, Secundaria, Superior, Ingreso, Universitario, etc.</li>
+        <li><strong>Precio por hora</strong> solo numérico.</li>
+        <li><strong>Modalidad en su domicilio</strong>, <strong>Modalidad a domicilio</strong> y <strong>Modalidad virtual</strong>.</li>
+        <li><strong>Descripción breve</strong> para experiencia, enfoque o disponibilidad.</li>
+        <li><strong>Calificación</strong> solo si realmente la vas a completar desde otra fuente o fórmula en Sheets.</li>
+      </ol>
+    </section>
+  </div>
+
+  <script>
+    const CSV_URL = "PEGA_ACA_TU_LINK_CSV_PUBLICO";
+    const CALIFICAR_URL = "https://forms.gle/on9vLtRGUnqp7fPE6";
+
+    let docentes = [];
+
+    const els = {
+      distrito: document.getElementById("distritoSelect"),
+      localidad: document.getElementById("localidadSelect"),
+      materia: document.getElementById("materiaSelect"),
+      nivel: document.getElementById("nivelSelect"),
+      texto: document.getElementById("textoInput"),
+      resultados: document.getElementById("resultados"),
+      resumen: document.getElementById("resumenResultados"),
+      estado: document.getElementById("estadoCarga"),
+      buscar: document.getElementById("buscarBtn"),
+      limpiar: document.getElementById("limpiarBtn")
+    };
+
+    const HEADER_ALIASES = {
+      timestamp: ["marca temporal", "timestamp", "fecha", "fecha de carga", "actualización", "actualizacion"],
+      activo: ["activo", "mostrar en buscador", "publicar perfil", "publicar"],
+      distrito: ["distrito", "distritos", "elige tu distrito", "zona"],
+      apellido: ["apellido", "apellidos"],
+      nombre: ["nombre", "nombres"],
+      celular: ["celular", "whatsapp", "telefono", "teléfono", "número", "numero"],
+      enSuDomicilio: ["domicilio propio", "en su domicilio", "clases en su domicilio", "¿das clases en tu domicilio?", "das clases en tu domicilio"],
+      otroDomicilio: ["otro domicilio", "va a domicilio", "a domicilio", "clases a domicilio", "¿vas a otro domicilio?", "vas a otro domicilio"],
+      virtual: ["virtual", "clases virtuales", "modalidad virtual", "¿das clase virtual?", "das clase virtual", "¿das clases virtuales?"],
+      precio: ["precio por hora", "precio", "valor por hora", "tarifa", "precio x hora"],
+      nivel: ["nivel", "nivel educativo", "para que nivel das:", "para que nivel das"],
+      materia: ["materia", "materias", "área", "area", "disciplina"],
+      localidad: ["localidad", "ciudad", "localidad del amba o gba"],
+      calificacion: ["calificación", "calificacion", "puntaje", "rating"],
+      descripcion: ["descripción", "descripcion", "presentación", "presentacion", "observaciones", "bio"]
+    };
+
+    function normalizeText(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .toLowerCase();
+    }
+
+    function titleCase(value) {
+      return String(value || "")
+        .toLowerCase()
+        .split(" ")
+        .filter(Boolean)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            cell += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          row.push(cell);
+          cell = "";
+        } else if ((char === '\n' || char === '\r') && !inQuotes) {
+          if (char === '\r' && next === '\n') i++;
+          row.push(cell);
+          if (row.some(item => item !== "")) rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += char;
+        }
+      }
+
+      row.push(cell);
+      if (row.some(item => item !== "")) rows.push(row);
+      return rows;
+    }
+
+    function detectHeaderIndex(headers, aliases) {
+      const normalizedHeaders = headers.map(normalizeText);
+      for (const alias of aliases) {
+        const index = normalizedHeaders.findIndex(h => h === normalizeText(alias));
+        if (index !== -1) return index;
+      }
+      return -1;
+    }
+
+    function buildHeaderMap(headers) {
+      const map = {};
+      for (const [key, aliases] of Object.entries(HEADER_ALIASES)) {
+        map[key] = detectHeaderIndex(headers, aliases);
+      }
+      return map;
+    }
+
+    function validateCSVUrl() {
+      if (!CSV_URL || CSV_URL.includes("PEGA_ACA_TU_LINK_CSV_PUBLICO")) {
+        throw new Error("Todavía no cargaste el link CSV público de Google Sheets en la constante CSV_URL.");
+      }
+    }
+
+    function getCell(row, headerMap, key) {
+      const index = headerMap[key];
+      return index >= 0 ? String(row[index] || "").trim() : "";
+    }
+
+    function parseBoolean(value) {
+      const normalized = normalizeText(value);
+      return ["si", "sí", "true", "1", "ok", "activo", "publicar"].includes(normalized);
+    }
+
+    function parsePrice(value) {
+      const cleaned = String(value || "").replace(/[^\d.,]/g, "").replace(/\./g, "").replace(/,/g, ".");
+      const number = Number(cleaned);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function parseRating(value) {
+      const number = Number(String(value || "").replace(/,/g, "."));
+      if (!Number.isFinite(number)) return null;
+      return Math.max(0, Math.min(5, number));
+    }
+
+    function cleanPhone(value) {
+      let celular = String(value || "").replace(/\D/g, "");
+      if (!celular) return "";
+      if (celular.startsWith("0")) celular = celular.slice(1);
+      if (!celular.startsWith("54")) celular = "54" + celular;
+      return celular;
+    }
+
+    function mapRowToDocente(row, headerMap) {
+      const activoRaw = getCell(row, headerMap, "activo");
+      const activo = headerMap.activo === -1 ? true : parseBoolean(activoRaw);
+
+      const distrito = titleCase(getCell(row, headerMap, "distrito"));
+      const localidad = titleCase(getCell(row, headerMap, "localidad"));
+      const materia = getCell(row, headerMap, "materia");
+      const nivel = titleCase(getCell(row, headerMap, "nivel"));
+      const apellido = titleCase(getCell(row, headerMap, "apellido"));
+      const nombre = titleCase(getCell(row, headerMap, "nombre"));
+      const descripcion = getCell(row, headerMap, "descripcion");
+      const celular = cleanPhone(getCell(row, headerMap, "celular"));
+      const precio = parsePrice(getCell(row, headerMap, "precio"));
+      const calificacion = parseRating(getCell(row, headerMap, "calificacion"));
+
+      return {
+        timestamp: getCell(row, headerMap, "timestamp"),
+        activo,
+        distrito,
+        localidad,
+        materia,
+        nivel,
+        apellido,
+        nombre,
+        descripcion,
+        celular,
+        precio,
+        calificacion,
+        enSuDomicilio: parseBoolean(getCell(row, headerMap, "enSuDomicilio")),
+        otroDomicilio: parseBoolean(getCell(row, headerMap, "otroDomicilio")),
+        virtual: parseBoolean(getCell(row, headerMap, "virtual"))
+      };
+    }
+
+    function docenteValido(docente) {
+      return docente.activo && (docente.nombre || docente.apellido) && (docente.materia || docente.nivel || docente.localidad);
+    }
+
+    function getUniqueValues(list, field) {
+      return [...new Set(list.map(item => item[field]).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
+    }
+
+    function setSelectOptions(select, placeholder, values, preserveValue = true) {
+      const previous = preserveValue ? select.value : "";
+      select.innerHTML = `<option value="">${placeholder}</option>`;
+      values.forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+      if (preserveValue && values.includes(previous)) select.value = previous;
+    }
+
+    function textoCoincide(docente, query) {
+      if (!query) return true;
+      const haystack = normalizeText([
+        docente.apellido,
+        docente.nombre,
+        docente.distrito,
+        docente.localidad,
+        docente.materia,
+        docente.nivel,
+        docente.descripcion
+      ].join(" "));
+      return haystack.includes(normalizeText(query));
+    }
+
+    function getFilteredData() {
+      const distrito = els.distrito.value;
+      const localidad = els.localidad.value;
+      const materia = els.materia.value;
+      const nivel = els.nivel.value;
+      const texto = els.texto.value;
+
+      return docentes.filter(docente =>
+        (!distrito || docente.distrito === distrito) &&
+        (!localidad || docente.localidad === localidad) &&
+        (!materia || docente.materia === materia) &&
+        (!nivel || docente.nivel === nivel) &&
+        textoCoincide(docente, texto)
+      );
+    }
+
+    function actualizarFiltros() {
+      const distrito = els.distrito.value;
+      const localidad = els.localidad.value;
+      const materia = els.materia.value;
+      const nivel = els.nivel.value;
+      const texto = els.texto.value;
+
+      let base = docentes;
+      if (distrito) base = base.filter(d => d.distrito === distrito);
+      if (localidad) base = base.filter(d => d.localidad === localidad);
+      if (materia) base = base.filter(d => d.materia === materia);
+      if (nivel) base = base.filter(d => d.nivel === nivel);
+      if (texto) base = base.filter(d => textoCoincide(d, texto));
+
+      setSelectOptions(els.distrito, "Seleccione distrito", getUniqueValues(docentes, "distrito"));
+      setSelectOptions(els.localidad, "Seleccione localidad", getUniqueValues(base, "localidad"));
+      setSelectOptions(els.materia, "Seleccione materia", getUniqueValues(base, "materia"));
+      setSelectOptions(els.nivel, "Seleccione nivel", getUniqueValues(base, "nivel"));
+    }
+
+    function obtenerEstrellas(valor) {
+      if (valor === null || valor === undefined) return "Sin calificar";
+      const llenas = Math.floor(valor);
+      const media = (valor % 1) >= 0.5 ? 1 : 0;
+      let estrellas = "";
+      for (let i = 0; i < llenas; i++) estrellas += "★";
+      if (media) estrellas += "☆";
+      for (let i = llenas + media; i < 5; i++) estrellas += "✩";
+      return estrellas;
+    }
+
+    function formatCurrency(value) {
+      if (value === null || value === undefined) return "A coordinar";
+      return new Intl.NumberFormat("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        maximumFractionDigits: 0
+      }).format(value);
+    }
+
+    function getWhatsappLink(celular, nombre) {
+      if (!celular) return "";
+      const texto = encodeURIComponent(`Hola ${nombre || ""}, encontré tu perfil en el buscador de Docentes Brown y me gustaría consultar por clases particulares.`.trim());
+      return `https://wa.me/${celular}?text=${texto}`;
+    }
+
+    function renderResultados(lista) {
+      els.resultados.innerHTML = "";
+      els.resumen.textContent = `${lista.length} docente${lista.length === 1 ? "" : "s"} encontrado${lista.length === 1 ? "" : "s"}`;
+
+      if (!lista.length) {
+        els.resultados.innerHTML = `
+          <div class="empty">
+            No encontré resultados con esos filtros.<br>
+            Probá limpiar algún criterio o buscar por texto libre.
+          </div>
+        `;
+        return;
+      }
+
+      lista.forEach(docente => {
+        const modalidades = [
+          docente.enSuDomicilio ? '<span class="modalidad-chip"><i class="fas fa-home"></i> En su domicilio</span>' : '',
+          docente.otroDomicilio ? '<span class="modalidad-chip"><i class="fas fa-location-arrow"></i> A domicilio</span>' : '',
+          docente.virtual ? '<span class="modalidad-chip"><i class="fas fa-laptop"></i> Virtual</span>' : ''
+        ].filter(Boolean).join('');
+
+        const whatsapp = getWhatsappLink(docente.celular, docente.nombre);
+        const descripcion = docente.descripcion ? `<div class="muted">${escapeHtml(docente.descripcion)}</div>` : '';
+        const fecha = docente.timestamp ? `<div class="muted">Perfil cargado: ${escapeHtml(docente.timestamp)}</div>` : '';
+
+        const card = document.createElement("article");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-head">
+            <div>
+              <h3>${escapeHtml([docente.apellido, docente.nombre].filter(Boolean).join(', '))}</h3>
+              <div class="muted">${escapeHtml([docente.localidad, docente.distrito].filter(Boolean).join(' · '))}</div>
+            </div>
+            <div class="badge">${escapeHtml(docente.nivel || 'Nivel a consultar')}</div>
+          </div>
+
+          <div class="badges">
+            ${docente.materia ? `<span class="badge"><i class="fas fa-book"></i> ${escapeHtml(docente.materia)}</span>` : ''}
+            <span class="badge"><i class="fas fa-wallet"></i> ${escapeHtml(formatCurrency(docente.precio))}</span>
+            <span class="badge"><i class="fas fa-star"></i> ${escapeHtml(obtenerEstrellas(docente.calificacion))}</span>
+          </div>
+
+          ${modalidades ? `<div class="modalidades">${modalidades}</div>` : ''}
+          ${descripcion}
+          ${fecha}
+
+          <div class="card-actions">
+            ${whatsapp ? `<a class="button whatsapp" href="${whatsapp}" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> WhatsApp</a>` : ''}
+            <a class="button rate" href="${CALIFICAR_URL}" target="_blank" rel="noopener noreferrer"><i class="fas fa-star"></i> Calificar docente</a>
+          </div>
+        `;
+        els.resultados.appendChild(card);
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function buscarDocentes() {
+      const resultados = getFilteredData();
+      renderResultados(resultados);
+    }
+
+    function limpiarFiltros() {
+      els.distrito.value = "";
+      els.localidad.value = "";
+      els.materia.value = "";
+      els.nivel.value = "";
+      els.texto.value = "";
+      actualizarFiltros();
+      renderResultados(docentes);
+    }
+
+    async function cargarDatos() {
+      els.estado.textContent = "Leyendo hoja de respuestas…";
+      try {
+        validateCSVUrl();
+        const response = await fetch(CSV_URL, { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const csv = await response.text();
+        const rows = parseCSV(csv);
+        if (!rows.length) throw new Error("La hoja no tiene datos.");
+
+        const headers = rows[0];
+        const headerMap = buildHeaderMap(headers);
+        docentes = rows
+          .slice(1)
+          .map(row => mapRowToDocente(row, headerMap))
+          .filter(docenteValido)
+          .sort((a, b) => [a.apellido, a.nombre].join(' ').localeCompare([b.apellido, b.nombre].join(' '), 'es'));
+
+        setSelectOptions(els.distrito, "Seleccione distrito", getUniqueValues(docentes, "distrito"), false);
+        setSelectOptions(els.localidad, "Seleccione localidad", getUniqueValues(docentes, "localidad"), false);
+        setSelectOptions(els.materia, "Seleccione materia", getUniqueValues(docentes, "materia"), false);
+        setSelectOptions(els.nivel, "Seleccione nivel", getUniqueValues(docentes, "nivel"), false);
+
+        els.estado.textContent = `Base cargada correctamente. ${docentes.length} perfiles activos listos para buscar.`;
+        renderResultados(docentes);
+      } catch (error) {
+        console.error(error);
+        els.estado.textContent = "No pude cargar la base de datos.";
+        els.resumen.textContent = "Error de carga";
+        els.resultados.innerHTML = `
+          <div class="error">
+            Hubo un problema al leer la hoja de respuestas.<br>
+            Revisá que la hoja siga publicada como CSV y que los encabezados existan.
+          </div>
+        `;
+      }
+    }
+
+    [els.distrito, els.localidad, els.materia, els.nivel].forEach(select => {
+      select.addEventListener("change", actualizarFiltros);
+    });
+    els.texto.addEventListener("input", actualizarFiltros);
+    els.texto.addEventListener("keydown", event => {
+      if (event.key === "Enter") buscarDocentes();
+    });
+    els.buscar.addEventListener("click", buscarDocentes);
+    els.limpiar.addEventListener("click", limpiarFiltros);
+
+    cargarDatos();
+  </script>
+</body>
+</html>

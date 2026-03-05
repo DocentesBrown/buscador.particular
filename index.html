@@ -541,7 +541,6 @@
       </div>
 
       <div class="actions">
-        <button class="btn-primary" id="buscarBtn" type="button">Buscar</button>
         <button class="btn-secondary" id="limpiarBtn" type="button">Limpiar filtros</button>
         <button class="btn-secondary" id="compartirBtn" type="button">Compartir app</button>
       </div>
@@ -595,7 +594,6 @@
       resultados: document.getElementById("resultados"),
       resumen: document.getElementById("resumenResultados"),
       estado: document.getElementById("estadoCarga"),
-      buscar: document.getElementById("buscarBtn"),
       limpiar: document.getElementById("limpiarBtn"),
       compartir: document.getElementById("compartirBtn"),
       altaBtn: document.querySelector(".floating-cta")
@@ -1007,11 +1005,6 @@
       }
     }
 
-    function buscarDocentes() {
-      const resultados = getFilteredData();
-      renderResultados(resultados);
-    }
-
     function limpiarFiltros() {
       els.zona.value = "";
       els.distrito.value = "";
@@ -1064,18 +1057,24 @@
       }
     }
 
+    function applyFiltersAutomatically() {
+      actualizarFiltros();
+      renderResultados(getFilteredData());
+    }
+
     [els.zona, els.distrito, els.localidad, els.nivel, els.materia].forEach(select => {
-      select.addEventListener("change", actualizarFiltros);
+      select.addEventListener("change", applyFiltersAutomatically);
     });
     els.precioMin.addEventListener("input", () => {
       els.precioMin.dataset.touched = "1";
       updatePriceRangeBounds();
+      renderResultados(getFilteredData());
     });
     els.precioMax.addEventListener("input", () => {
       els.precioMax.dataset.touched = "1";
       updatePriceRangeBounds();
+      renderResultados(getFilteredData());
     });
-    els.buscar.addEventListener("click", buscarDocentes);
     els.limpiar.addEventListener("click", () => {
       delete els.precioMin.dataset.touched;
       delete els.precioMax.dataset.touched;

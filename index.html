@@ -568,14 +568,14 @@
     </section>
   </div>
 
-  <a class="floating-cta" href="https://docs.google.com/forms/d/e/10L6-55J9VFXR_oRt516hVOZGko88hfHp69mePUhqrcg/viewform" target="_blank" rel="noopener noreferrer" aria-label="Sumarme a la base de datos">
+  <a class="floating-cta" href="https://forms.gle/efXzwg1jhtvpf33YA" target="_blank" rel="noopener noreferrer" aria-label="Sumarme a la base de datos">
     <i class="fas fa-user-plus"></i>
     Quiero sumarme a la base de datos
   </a>
 
   <script>
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwYUwOH_lmSi_-ekHejCXS_cEyykjglVPsj5HxaIHXC8gO9bo742d4Fb-yhSRbbooBmeXbhdnTVLw8/pub?output=csv";
-    const ALTA_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdzPO_Za1BmuVDJt8_MHWcJuER9dQP7K28Rqp9_vtaIKsIiDw/viewform?usp=header";
+    const ALTA_FORM_URL = "https://forms.gle/efXzwg1jhtvpf33YA";
     const CALIFICAR_URL = "https://forms.gle/on9vLtRGUnqp7fPE6";
 
     let docentes = [];
@@ -597,7 +597,8 @@
       estado: document.getElementById("estadoCarga"),
       buscar: document.getElementById("buscarBtn"),
       limpiar: document.getElementById("limpiarBtn"),
-      compartir: document.getElementById("compartirBtn")
+      compartir: document.getElementById("compartirBtn"),
+      altaBtn: document.querySelector(".floating-cta")
     };
 
     const HEADER_ALIASES = {
@@ -848,8 +849,13 @@
 
       const availableMin = prices[0];
       const availableMax = prices[prices.length - 1];
-      let currentMin = Number(els.precioMin.value || availableMin);
-      let currentMax = Number(els.precioMax.value || availableMax);
+      const touchedMin = els.precioMin.dataset.touched === "1";
+      const touchedMax = els.precioMax.dataset.touched === "1";
+      let currentMin = touchedMin ? Number(els.precioMin.value) : availableMin;
+      let currentMax = touchedMax ? Number(els.precioMax.value) : availableMax;
+
+      if (!Number.isFinite(currentMin)) currentMin = availableMin;
+      if (!Number.isFinite(currentMax)) currentMax = availableMax;
 
       currentMin = Math.max(availableMin, Math.min(currentMin, availableMax));
       currentMax = Math.max(availableMin, Math.min(currentMax, availableMax));
@@ -1061,12 +1067,24 @@
     [els.zona, els.distrito, els.localidad, els.nivel, els.materia].forEach(select => {
       select.addEventListener("change", actualizarFiltros);
     });
-    [els.precioMin, els.precioMax].forEach(input => input.addEventListener("input", () => {
+    els.precioMin.addEventListener("input", () => {
+      els.precioMin.dataset.touched = "1";
       updatePriceRangeBounds();
-    }));
+    });
+    els.precioMax.addEventListener("input", () => {
+      els.precioMax.dataset.touched = "1";
+      updatePriceRangeBounds();
+    });
     els.buscar.addEventListener("click", buscarDocentes);
-    els.limpiar.addEventListener("click", limpiarFiltros);
+    els.limpiar.addEventListener("click", () => {
+      delete els.precioMin.dataset.touched;
+      delete els.precioMax.dataset.touched;
+      limpiarFiltros();
+    });
     els.compartir.addEventListener("click", compartirApp);
+    if (els.altaBtn) {
+      els.altaBtn.href = ALTA_FORM_URL;
+    }
 
     cargarDatos();
   </script>

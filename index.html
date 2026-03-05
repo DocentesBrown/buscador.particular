@@ -284,6 +284,41 @@
       font-size: 0.92em;
     }
 
+    .disclaimer {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(218,104,99,0.10);
+      border: 1px solid rgba(218,104,99,0.24);
+      color: var(--color-texto);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .floating-cta {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 999;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--color-secundario), #ef9963);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      box-shadow: 0 14px 30px rgba(218,104,99,0.30);
+      border: 1px solid rgba(255,255,255,0.18);
+      max-width: calc(100% - 24px);
+    }
+
+    .floating-cta:hover {
+      transform: translateY(-1px);
+    }
+
+
     @media (max-width: 900px) {
       .filters { grid-template-columns: 1fr 1fr; }
     }
@@ -296,6 +331,13 @@
       .toolbar { align-items: stretch; }
       .card-actions { flex-direction: column; }
       .button { flex: 1 1 auto; }
+      .floating-cta {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        justify-content: center;
+        text-align: center;
+      }
     }
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -310,6 +352,10 @@
         <a href="https://www.instagram.com/docentesbrown" target="_blank" rel="noopener noreferrer">@docentesbrown</a>.
         La plataforma organiza búsquedas y contactos, pero no intermedia en acuerdos económicos ni garantiza la información declarada por cada docente.
       </p>
+      <div class="disclaimer">
+        Importante: los perfiles publicados en esta base de datos pertenecen a personas que completaron el formulario de manera voluntaria.
+        No son empleados de Docentes Brown ni representan institucionalmente a Docentes Brown. La plataforma solo facilita la visibilidad de los datos para contacto directo entre las partes.
+      </div>
     </section>
 
     <section class="panel">
@@ -359,25 +405,25 @@
     </section>
 
     <section class="panel">
-      <h2 class="panel-title">Cómo conviene armar el formulario</h2>
-      <p class="panel-subtitle">Para que las respuestas te sirvan como base de datos real, estas preguntas deberían existir con nombres consistentes.</p>
-      <ol class="helper-list">
-        <li><strong>Activo</strong>: “Sí / No” para ocultar temporalmente docentes sin borrar respuestas.</li>
-        <li><strong>Apellido</strong> y <strong>Nombre</strong>.</li>
-        <li><strong>WhatsApp</strong> en formato claro.</li>
-        <li><strong>Distrito</strong> y <strong>Localidad</strong> con opciones cerradas.</li>
-        <li><strong>Materia</strong> con una sola materia por envío. Si da varias, que complete otro envío o usar una lista separada con delimitador fijo.</li>
-        <li><strong>Nivel</strong> con opciones cerradas: Inicial, Primaria, Secundaria, Superior, Ingreso, Universitario, etc.</li>
-        <li><strong>Precio por hora</strong> solo numérico.</li>
-        <li><strong>Modalidad en su domicilio</strong>, <strong>Modalidad a domicilio</strong> y <strong>Modalidad virtual</strong>.</li>
-        <li><strong>Descripción breve</strong> para experiencia, enfoque o disponibilidad.</li>
-        <li><strong>Calificación</strong> solo si realmente la vas a completar desde otra fuente o fórmula en Sheets.</li>
-      </ol>
+      <h2 class="panel-title">Sobre la base de datos</h2>
+      <p class="panel-subtitle">
+        Esta app lee una hoja pública de Google Sheets generada a partir de un formulario. Por eso los datos visibles son únicamente los que cada persona decidió compartir para ofrecer clases particulares.
+      </p>
+      <div class="disclaimer">
+        Docentes Brown no emplea, contrata ni certifica a quienes aparecen en el listado. Cada contacto, acuerdo, modalidad de pago y verificación de antecedentes queda bajo responsabilidad de las personas involucradas.
+      </div>
     </section>
   </div>
 
+  <a class="floating-cta" href="https://docs.google.com/forms/d/e/10L6-55J9VFXR_oRt516hVOZGko88hfHp69mePUhqrcg/viewform" target="_blank" rel="noopener noreferrer" aria-label="Sumarme a la base de datos">
+    <i class="fas fa-user-plus"></i>
+    Quiero sumarme a la base de datos
+  </a>
+
   <script>
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2QSxoKtG7qZquMBE724lvFai2Ms0SyVHx5fYNiV141zPQtq45nKTSBmkkhfTf5OXX8UMi6MzoS-Jd/pub?output=csv";
+    const CSV_URL_PARTS = ["https://docs.google.com/spreadsheets/d/e/2PACX-1vQwYUwO", "H_lmSi_-ekHejCXS_cEyykjglVPsj5HxaIHXC8gO9bo742d4Fb-yhSR", "bbooBmeXbhdnTVLw8/pub?output=csv"];
+    const CSV_URL = CSV_URL_PARTS.join("");
+    const ALTA_FORM_URL = "https://docs.google.com/forms/d/e/10L6-55J9VFXR_oRt516hVOZGko88hfHp69mePUhqrcg/viewform";
     const CALIFICAR_URL = "https://forms.gle/on9vLtRGUnqp7fPE6";
 
     let docentes = [];
@@ -398,17 +444,17 @@
     const HEADER_ALIASES = {
       timestamp: ["marca temporal", "timestamp", "fecha", "fecha de carga", "actualización", "actualizacion"],
       activo: ["activo", "mostrar en buscador", "publicar perfil", "publicar"],
-      distrito: ["distrito", "distritos", "zona"],
+      distrito: ["distrito", "distritos", "elige tu distrito", "zona"],
       apellido: ["apellido", "apellidos"],
       nombre: ["nombre", "nombres"],
       celular: ["celular", "whatsapp", "telefono", "teléfono", "número", "numero"],
-      enSuDomicilio: ["domicilio propio", "en su domicilio", "clases en su domicilio"],
-      otroDomicilio: ["otro domicilio", "va a domicilio", "a domicilio", "clases a domicilio"],
-      virtual: ["virtual", "clases virtuales", "modalidad virtual"],
-      precio: ["precio por hora", "precio", "valor por hora", "tarifa"],
-      nivel: ["nivel", "nivel educativo"],
+      enSuDomicilio: ["domicilio propio", "en su domicilio", "clases en su domicilio", "¿das clases en tu domicilio?", "das clases en tu domicilio"],
+      otroDomicilio: ["otro domicilio", "va a domicilio", "a domicilio", "clases a domicilio", "¿vas a otro domicilio?", "vas a otro domicilio"],
+      virtual: ["virtual", "clases virtuales", "modalidad virtual", "¿das clase virtual?", "das clase virtual", "¿das clases virtuales?"],
+      precio: ["precio por hora", "precio", "valor por hora", "tarifa", "precio x hora"],
+      nivel: ["nivel", "nivel educativo", "para que nivel das:", "para que nivel das"],
       materia: ["materia", "materias", "área", "area", "disciplina"],
-      localidad: ["localidad", "ciudad"],
+      localidad: ["localidad", "ciudad", "localidad del amba o gba"],
       calificacion: ["calificación", "calificacion", "puntaje", "rating"],
       descripcion: ["descripción", "descripcion", "presentación", "presentacion", "observaciones", "bio"]
     };
@@ -481,6 +527,12 @@
         map[key] = detectHeaderIndex(headers, aliases);
       }
       return map;
+    }
+
+    function validateCSVUrl() {
+      if (!CSV_URL) {
+        throw new Error("No hay un link CSV público configurado.");
+      }
     }
 
     function getCell(row, headerMap, key) {
@@ -725,6 +777,7 @@
     async function cargarDatos() {
       els.estado.textContent = "Leyendo hoja de respuestas…";
       try {
+        validateCSVUrl();
         const response = await fetch(CSV_URL, { cache: "no-store" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const csv = await response.text();
